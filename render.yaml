@@ -1,0 +1,43 @@
+# Render blueprint — define o serviço da API a partir do repo.
+# Como usar: dashboard.render.com → New → Blueprint → escolhe este repo.
+# Render lê este arquivo e cria o web service com build/start corretos.
+#
+# Postgres e Redis: NÃO criados aqui (Render free tier não tem mais o "Free
+# Postgres" — então usamos Neon/Upstash externos). DATABASE_URL/REDIS_URL
+# devem ser setados manualmente em Environment.
+services:
+  - type: web
+    name: umbra-api
+    runtime: node
+    plan: free
+    region: oregon
+    # Build no root pra resolver workspaces (npm install + build de types e api)
+    buildCommand: npm ci && npm run build:api
+    # db:migrate roda antes do start; falha = redeploy retry
+    startCommand: npm run db:migrate && npm run start:api
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Render injeta PORT automático (10000) — nossa env.PORT pega isso
+      - key: PORT
+        value: 10000
+      # Estes 4 SÃO obrigatórios e devem ser preenchidos no dashboard.
+      # Marcando `sync: false` pra Render NÃO sobrescrever em redeploy.
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+      - key: API_URL
+        sync: false
