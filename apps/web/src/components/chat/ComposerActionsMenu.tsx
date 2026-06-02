@@ -92,7 +92,7 @@ export function ComposerActionsMenu({
           className={cn(
             'absolute bottom-9 left-0 z-30 min-w-[210px]',
             'bg-(--overlay) border border-(--border-mid) shadow-2xl',
-            'origin-bottom-left',
+            'rounded-xl overflow-hidden origin-bottom-left',
           )}
           style={{ animation: 'composerMenuSlideUp 180ms cubic-bezier(0.16, 1, 0.3, 1) both' }}
         >

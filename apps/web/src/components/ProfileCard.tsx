@@ -174,12 +174,19 @@ export default function ProfileCard({ userId, onClose }: ProfileCardProps) {
   // popover mixada com themeBg. Aproximamos amostrando themeBg direto.)
   const bodyContrast      = getContrast(themeBg)
   const bodyTextInverted  = bodyContrast.isLightBg
-  // Vars CSS overrides aplicados via inline style no body wrapper
+  // Vars CSS overrides + text-shadow sutil — preto/branco puro pra
+  // máximo destaque, shadow inverso pra criar separação do backdrop.
   const bodyTextOverrides: React.CSSProperties = bodyTextInverted ? {
-    ['--text-1' as string]: '#0d0d10',
-    ['--text-2' as string]: '#33343a',
-    ['--text-3' as string]: '#6b6c74',
-  } : {}
+    ['--text-1' as string]: '#000000',
+    ['--text-2' as string]: '#1c1d21',
+    ['--text-3' as string]: '#4a4b52',
+    textShadow: '0 1px 2px rgba(255,255,255,0.4)',
+  } : {
+    ['--text-1' as string]: '#ffffff',
+    ['--text-2' as string]: '#dddee2',
+    ['--text-3' as string]: '#9a9ba2',
+    textShadow: '0 1px 2px rgba(0,0,0,0.45)',
+  }
 
   /**
    * Color extraction → ambient glow.
@@ -237,12 +244,26 @@ export default function ProfileCard({ userId, onClose }: ProfileCardProps) {
     return () => { cancelled = true }
   }, [profile?.bannerUrl, profile?.bannerColor, bannerError, accentColor])
 
+  // Card border animation: aplicada no SheetContent (perímetro completo).
+  // O SheetContent precisa overflow:hidden pra que o pseudo-element ::after
+  // não scrolle com o conteúdo. Scroll vai pra um wrapper interno.
+  const cardBorderClass = profile?.bannerBorder && profile.bannerBorder !== 'none'
+    ? `card-border-${profile.bannerBorder}`
+    : ''
+
   return (
     <Sheet open onOpenChange={(o: boolean) => !o && onClose()}>
       <SheetContent
         side="right"
-        className="p-0 overflow-y-auto gap-0 flex flex-col w-full sm:max-w-md bg-(--popover) data-[state=open]:[animation-duration:480ms] data-[state=closed]:[animation-duration:260ms] data-[state=open]:[animation-timing-function:cubic-bezier(0.16,1,0.3,1)] data-[state=closed]:[animation-timing-function:cubic-bezier(0.4,0,0.2,1)]"
+        className={cn(
+          'p-0 overflow-hidden gap-0 flex flex-col w-full sm:max-w-md bg-(--popover)',
+          'data-[state=open]:[animation-duration:480ms] data-[state=closed]:[animation-duration:260ms]',
+          'data-[state=open]:[animation-timing-function:cubic-bezier(0.16,1,0.3,1)]',
+          'data-[state=closed]:[animation-timing-function:cubic-bezier(0.4,0,0.2,1)]',
+          cardBorderClass,
+        )}
       >
+       <div className="flex-1 overflow-y-auto flex flex-col">
         {isLoading ? (
           <div className="flex-1 flex items-center justify-center gap-2 text-sm text-(--text-3)">
             <Spinner size={16} /> Carregando perfil…
@@ -259,10 +280,7 @@ export default function ProfileCard({ userId, onClose }: ProfileCardProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className={cn(
-                'relative h-60 overflow-hidden shrink-0 rounded-bl-2xl rounded-br-2xl',
-                profile.bannerBorder && profile.bannerBorder !== 'none' && `banner-border-${profile.bannerBorder}`,
-              )}
+              className="relative h-60 overflow-hidden shrink-0 rounded-bl-2xl rounded-br-2xl"
               style={{
                 background: bannerBg,
                 // Glow ambient leve com cor extraída (intensidades reduzidas
@@ -556,6 +574,7 @@ export default function ProfileCard({ userId, onClose }: ProfileCardProps) {
             <SheetDescription>Esse usuário pode ter sido removido.</SheetDescription>
           </div>
         )}
+        </div>
       </SheetContent>
     </Sheet>
   )

@@ -336,7 +336,7 @@ export default function CustomizationSection() {
             {/* BORDA */}
             <TabsContent value="borda" className="mt-6">
               <p className="text-xs text-(--text-3) m-0 mb-4 leading-relaxed max-w-prose">
-                Animação ao redor do banner. 8 estilos GPU-leves. Respeitam reduced-motion.
+                Animação ao redor do CARD inteiro (não só do banner). 8 estilos GPU-leves. Respeitam reduced-motion.
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {BANNER_BORDER_OPTIONS.map((opt) => (
@@ -455,7 +455,7 @@ function BannerPreview({
     <div
       className={cn(
         'w-full h-44 sm:h-48 rounded-xl border border-(--border-mid) overflow-hidden relative',
-        border !== 'none' && `banner-border-${border}`,
+        border !== 'none' && `card-border-${border}`,
       )}
       style={!bannerUrl ? { background: fallbackBg } : undefined}
     >

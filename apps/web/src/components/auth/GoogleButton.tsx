@@ -9,7 +9,7 @@ export default function GoogleButton() {
       onClick={handleClick}
       className="
         group relative w-full flex items-center justify-center gap-3
-        px-4 py-3
+        px-4 py-3 rounded-lg
         bg-transparent
         border border-(--border-mid)
         text-foreground text-sm font-medium tracking-wide

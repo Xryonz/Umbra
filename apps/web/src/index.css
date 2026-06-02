@@ -190,9 +190,9 @@
 .t-dot:nth-child(3) { animation-delay: 0.32s;  }
 
 /* ═══════════════════════════════════════════════════════════
-   BANNER BORDERS — frames animadas pro banner do profile.
-   Aplicado via class no wrapper do banner. ::after pinta o
-   efeito por cima do banner sem clipar o conteúdo (mask trick
+   CARD BORDERS — animações ao redor do ProfileCard inteiro.
+   Aplicado via class no SheetContent (wrapper externo do card).
+   ::after pinta o efeito sem clipar o conteúdo (mask trick
    na aurora isola apenas o ring).
    ═══════════════════════════════════════════════════════════ */
 
@@ -208,8 +208,8 @@
 
 /* Aurora — ring de conic-gradient que gira. Usa padding-box mask pra
    pintar SÓ a borda (2px). Funciona em Chrome/Firefox/Safari 15+. */
-.banner-border-aurora { position: relative; }
-.banner-border-aurora::after {
+.card-border-aurora { position: relative; }
+.card-border-aurora::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -234,8 +234,8 @@
 }
 
 /* Pulse — borda accent pulsando intensidade. */
-.banner-border-pulse { position: relative; }
-.banner-border-pulse::after {
+.card-border-pulse { position: relative; }
+.card-border-pulse::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -247,8 +247,8 @@
 }
 
 /* Ink — vinheta de tinta que "respira" nas bordas. */
-.banner-border-ink { position: relative; }
-.banner-border-ink::after {
+.card-border-ink { position: relative; }
+.card-border-ink::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -261,9 +261,13 @@
 
 /* prefers-reduced-motion: pausa giro/pulse/respiração */
 @media (prefers-reduced-motion: reduce) {
-  .banner-border-aurora::after,
-  .banner-border-pulse::after,
-  .banner-border-ink::after {
+  .card-border-aurora::after,
+  .card-border-pulse::after,
+  .card-border-ink::after,
+  .card-border-marquee::after,
+  .card-border-glow,
+  .card-border-noise::after,
+  .card-border-shimmer::after {
     animation: none;
   }
 }
@@ -288,8 +292,8 @@
 @keyframes banner-shimmer { to { transform: translateX(150%); } }
 
 /* 5. Marquee — borda tracejada deslizando (vibe ticker). */
-.banner-border-marquee { position: relative; }
-.banner-border-marquee::after {
+.card-border-marquee { position: relative; }
+.card-border-marquee::after {
   content: ''; position: absolute;
   inset: 0;
   border-radius: inherit;
@@ -313,15 +317,15 @@
 }
 
 /* 6. Glow — borda accent pulsante difusa (outer glow). */
-.banner-border-glow {
+.card-border-glow {
   position: relative;
   animation: banner-glow 3.2s ease-in-out infinite;
   will-change: box-shadow;
 }
 
 /* 7. Noise — textura granulada sutil em cima do banner. */
-.banner-border-noise { position: relative; }
-.banner-border-noise::after {
+.card-border-noise { position: relative; }
+.card-border-noise::after {
   content: ''; position: absolute;
   inset: 0;
   border-radius: inherit;
@@ -339,8 +343,8 @@
 }
 
 /* 8. Shimmer — faixa diagonal de luz atravessando lentamente. */
-.banner-border-shimmer { position: relative; overflow: hidden; }
-.banner-border-shimmer::after {
+.card-border-shimmer { position: relative; overflow: hidden; }
+.card-border-shimmer::after {
   content: ''; position: absolute;
   inset: 0;
   pointer-events: none;
@@ -355,15 +359,6 @@
   animation: banner-shimmer 5s ease-in-out infinite;
   z-index: 2;
   will-change: transform;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .banner-border-marquee::after,
-  .banner-border-glow,
-  .banner-border-noise::after,
-  .banner-border-shimmer::after {
-    animation: none;
-  }
 }
 
 /* ═══════════════════════════════════════════════════════════

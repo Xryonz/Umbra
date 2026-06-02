@@ -85,7 +85,7 @@ export default function LoginForm() {
           type="submit"
           disabled={form.formState.isSubmitting}
           className="
-            mt-2 h-12 w-full rounded-none
+            mt-2 h-12 w-full rounded-lg
             bg-(--accent) text-(--text-inv)
             font-medium tracking-wider uppercase text-xs
             hover:bg-(--accent-h) hover:shadow-[0_8px_24px_var(--accent-glow)]
