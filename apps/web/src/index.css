@@ -141,6 +141,35 @@
   from { transform: scaleY(0); opacity: 0; }
   to   { transform: scaleY(1); opacity: 1; }
 }
+/* ═══════════════════════════════════════════════════════════
+   SHEET (Radix Dialog) — animações nativas v4.
+   Substituem tailwindcss-animate v3 que não funciona em v4
+   (plugin não está carregado e classes são noop → SheetContent
+   pode ficar travado off-screen). Usa data-state do Radix.
+   ═══════════════════════════════════════════════════════════ */
+@keyframes sheetFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sheetFadeOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes sheetSlideInRight  { from { transform: translateX(100%);  } to { transform: translateX(0); } }
+@keyframes sheetSlideOutRight { from { transform: translateX(0);     } to { transform: translateX(100%); } }
+@keyframes sheetSlideInLeft   { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+@keyframes sheetSlideOutLeft  { from { transform: translateX(0);     } to { transform: translateX(-100%); } }
+@keyframes sheetSlideInTop    { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+@keyframes sheetSlideOutTop   { from { transform: translateY(0);     } to { transform: translateY(-100%); } }
+@keyframes sheetSlideInBottom { from { transform: translateY(100%);  } to { transform: translateY(0); } }
+@keyframes sheetSlideOutBottom{ from { transform: translateY(0);     } to { transform: translateY(100%); } }
+
+.sheet-overlay[data-state="open"]  { animation: sheetFadeIn  0.24s ease-out both; }
+.sheet-overlay[data-state="closed"]{ animation: sheetFadeOut 0.18s ease-in  both; }
+
+.sheet-content-right[data-state="open"]   { animation: sheetSlideInRight  0.34s cubic-bezier(0.16,1,0.3,1) both; }
+.sheet-content-right[data-state="closed"] { animation: sheetSlideOutRight 0.24s cubic-bezier(0.4,0,0.2,1)  both; }
+.sheet-content-left[data-state="open"]    { animation: sheetSlideInLeft   0.34s cubic-bezier(0.16,1,0.3,1) both; }
+.sheet-content-left[data-state="closed"]  { animation: sheetSlideOutLeft  0.24s cubic-bezier(0.4,0,0.2,1)  both; }
+.sheet-content-top[data-state="open"]     { animation: sheetSlideInTop    0.34s cubic-bezier(0.16,1,0.3,1) both; }
+.sheet-content-top[data-state="closed"]   { animation: sheetSlideOutTop   0.24s cubic-bezier(0.4,0,0.2,1)  both; }
+.sheet-content-bottom[data-state="open"]  { animation: sheetSlideInBottom 0.34s cubic-bezier(0.16,1,0.3,1) both; }
+.sheet-content-bottom[data-state="closed"]{ animation: sheetSlideOutBottom 0.24s cubic-bezier(0.4,0,0.2,1) both; }
+
 /* Bell shake — 3 oscilações rápidas pra signal de notif nova. */
 @keyframes bellShake {
   0%,100% { transform: rotate(0); }

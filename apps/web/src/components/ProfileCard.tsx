@@ -257,9 +257,6 @@ export default function ProfileCard({ userId, onClose }: ProfileCardProps) {
         side="right"
         className={cn(
           'p-0 overflow-hidden gap-0 flex flex-col w-full sm:max-w-md bg-(--overlay)',
-          'data-[state=open]:[animation-duration:480ms] data-[state=closed]:[animation-duration:260ms]',
-          'data-[state=open]:[animation-timing-function:cubic-bezier(0.16,1,0.3,1)]',
-          'data-[state=closed]:[animation-timing-function:cubic-bezier(0.4,0,0.2,1)]',
           cardBorderClass,
         )}
       >
