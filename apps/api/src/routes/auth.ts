@@ -52,7 +52,7 @@ const REFRESH_COOKIE_OPTIONS = {
   secure:   isProd,
   sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax',
   maxAge:   7 * 24 * 60 * 60 * 1000,
-  path:     '/api/auth',
+  path:     '/',
 }
 
 // ── POST /api/auth/register ───────────────────────────────────
@@ -130,7 +130,7 @@ router.post(
     try {
       payload = verifyRefreshToken(token)
     } catch {
-      res.clearCookie('refreshToken', { path: '/api/auth' })
+      res.clearCookie('refreshToken', { path: '/' })
       return res.status(401).json({ error: 'Refresh token inválido' })
     }
 
@@ -149,7 +149,7 @@ router.post(
       .returning({ id: refreshTokens.id, userId: refreshTokens.userId })
 
     if (claimed.length === 0) {
-      res.clearCookie('refreshToken', { path: '/api/auth' })
+      res.clearCookie('refreshToken', { path: '/' })
       return res.status(401).json({ error: 'Refresh token inválido ou expirado' })
     }
 
@@ -175,7 +175,7 @@ router.post(
         .where(eq(refreshTokens.token, tokenHash))
     }
     if (req.jti) await blacklistToken(req.jti, 15 * 60)
-    res.clearCookie('refreshToken', { path: '/api/auth' })
+    res.clearCookie('refreshToken', { path: '/' })
     res.json({ message: 'Logout realizado' })
   })
 )
