@@ -122,7 +122,7 @@ export default function CommandPalette() {
               >
                 <Hash className="text-(--text-3)" />
                 <span className="flex-1 truncate">{c.name}</span>
-                <span className="text-[11px] text-(--text-3) font-mono truncate max-w-32">{c.serverName}</span>
+                <span className="text-marg text-(--text-3) font-mono truncate max-w-32">{c.serverName}</span>
               </CommandItem>
             ))}
           </CommandGroup>
@@ -150,7 +150,7 @@ export default function CommandPalette() {
                     : u.displayName.slice(0, 1).toUpperCase()}
                 </div>
                 <span className="flex-1 truncate">{u.displayName}</span>
-                <span className="text-[11px] text-(--text-3) font-mono truncate">@{u.username}</span>
+                <span className="text-marg text-(--text-3) font-mono truncate">@{u.username}</span>
               </CommandItem>
             ))}
           </CommandGroup>
@@ -167,7 +167,7 @@ export default function CommandPalette() {
                 <MessageSquare className="text-(--text-3) mt-0.5" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-[11px] font-mono text-(--text-3) truncate">
+                    <span className="text-marg font-mono text-(--text-3) truncate">
                       {m.serverName} · #{m.channelName} · {m.author.displayName}
                     </span>
                   </div>
@@ -180,7 +180,7 @@ export default function CommandPalette() {
       </CommandList>
 
       {/* Footer com atalhos */}
-      <div className="border-t border-(--border) px-4 py-2 flex items-center gap-3 text-[11px] text-(--text-3) font-mono">
+      <div className="border-t border-(--border) px-4 py-2 flex items-center gap-3 text-marg text-(--text-3) font-mono">
         <span><CommandShortcut className="ml-0">↑↓</CommandShortcut> navegar</span>
         <span><CommandShortcut className="ml-0">↵</CommandShortcut> abrir</span>
         <span><CommandShortcut className="ml-0">esc</CommandShortcut> fechar</span>
