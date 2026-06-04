@@ -11,12 +11,13 @@ interface Props {
 
 export function ProfileBio({ bio, isSelf, fontFamily }: Props) {
   return (
-    <section className="mb-5">
+    <section className="mt-2 mb-5">
       {/* Label "Sobre" em Great Vibes — fonte cursive editorial pra dar
-          peso decorativo. Substitui o ed-label mono uppercase. */}
+          peso decorativo. Tamanho reduzido pra não colidir com o handle
+          acima (descenders do script chegam alto). */}
       <span
-        className="block leading-none mb-1 text-(--accent)"
-        style={{ fontFamily: 'var(--font-script)', fontSize: '1.6rem' }}
+        className="block leading-none mb-1.5 text-(--accent)"
+        style={{ fontFamily: 'var(--font-script)', fontSize: '1.1rem' }}
       >
         Sobre
       </span>
