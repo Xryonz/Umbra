@@ -54,7 +54,7 @@ export const UpdateProfileSchema = z.object({
   bannerColor:  z.string().regex(BANNER_COLOR_RE, 'Cor inválida').optional().nullable(),
   profileTheme: z.string().regex(BANNER_COLOR_RE, 'Cor inválida').optional().nullable(),
   bannerPositionY: z.number().int().min(0).max(100).optional(),
-  bannerScale:     z.number().int().min(100).max(200).optional(),
+  bannerScale:     z.number().int().min(50).max(200).optional(),
   bannerBorder:    z.enum(BANNER_BORDER_STYLES).optional(),
   bannerTextColor: z.string().regex(HEX_COLOR_RE, 'Use hex #RRGGBB').optional().nullable(),
   pronouns:        z.string().max(32, 'Máx 32 caracteres').optional().nullable(),

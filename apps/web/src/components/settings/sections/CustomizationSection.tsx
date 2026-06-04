@@ -262,7 +262,7 @@ export default function CustomizationSection() {
               {bannerUrl && !bannerImgErr ? (
                 <div className="flex flex-col gap-3">
                   <p className="text-xs text-(--text-3) m-0 leading-relaxed max-w-prose">
-                    Arraste a imagem verticalmente pra escolher qual parte aparece. Use o slider de zoom pra dar close.
+                    Arraste a imagem verticalmente pra escolher qual parte aparece. Slider de zoom: 50% mostra banner inteiro (bg preenche em volta) · 200% dá close máximo.
                   </p>
                   <BannerPositioner
                     bannerUrl={bannerUrl}
@@ -458,7 +458,7 @@ function BannerPositioner({
           <span className="ed-marg shrink-0">Zoom</span>
           <input
             type="range"
-            min={100}
+            min={50}
             max={200}
             step={5}
             value={scale}

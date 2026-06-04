@@ -17,7 +17,6 @@ import { motion } from 'motion/react'
 import { api } from '@/lib/api'
 import { HoverCard, HoverCardTrigger, HoverCardContent } from '@/components/ui/hover-card'
 import { Button } from '@/components/ui/button'
-import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/sonner'
 import { ProfileBanner } from '@/components/profile/ProfileBanner'
 import { ProfileHero } from '@/components/profile/ProfileHero'
@@ -129,9 +128,7 @@ export function ProfileHoverCard({ username, userId, children, side = 'top', ali
 
           <div className="px-5 pb-5 -mt-6">
             {isLoading || !data ? (
-              <div className="flex items-center gap-2 mt-3 text-(--text-3) text-sm">
-                <Spinner size={14} /> Carregando…
-              </div>
+              <HoverCardSkeleton />
             ) : (
               <>
                 <ProfileHero
@@ -167,5 +164,31 @@ export function ProfileHoverCard({ username, userId, children, side = 'top', ali
         </motion.div>
       </HoverCardContent>
     </HoverCard>
+  )
+}
+
+/**
+ * Skeleton inline do hover — reproduz silhueta do ProfileHero (avatar
+ * overlap + nome + handle + bio + botão) pra evitar layout shift e
+ * spinner desbalanceado no canto.
+ */
+function HoverCardSkeleton() {
+  return (
+    <div className="animate-pulse">
+      {/* Avatar circle — sobrepõe banner mantendo proporção do ProfileHero real */}
+      <div
+        className="size-24 rounded-full -mt-12 mb-3 border-4 bg-(--raised)"
+        style={{ borderColor: 'var(--overlay)' }}
+      />
+      {/* Nome */}
+      <div className="h-6 w-40 rounded bg-(--raised) mb-2" />
+      {/* Handle + status */}
+      <div className="h-3 w-28 rounded bg-(--raised) mb-3" />
+      {/* Bio 2 linhas */}
+      <div className="h-3 w-full rounded bg-(--raised) mb-1.5" />
+      <div className="h-3 w-2/3 rounded bg-(--raised) mb-3" />
+      {/* Botão DM */}
+      <div className="h-9 w-full rounded-lg bg-(--raised) mt-2" />
+    </div>
   )
 }
