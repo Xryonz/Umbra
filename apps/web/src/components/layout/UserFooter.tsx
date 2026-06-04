@@ -44,6 +44,7 @@ export function UserFooter({ onProfileClick }: Props) {
         onMouseEnter={(e) => (e.currentTarget.style.borderColor = accentColor)}
         onMouseLeave={(e) => (e.currentTarget.style.borderColor = accentColor + '66')}
         title="Ver meu perfil"
+        aria-label="Ver meu perfil"
       >
         {user?.avatarUrl
           ? <img src={user.avatarUrl} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
@@ -86,6 +87,7 @@ function FooterBtn({ title, onClick, danger, children }: {
       <TooltipTrigger asChild>
         <button
           onClick={onClick}
+          aria-label={title}
           className={cn(
             'bg-transparent border-none cursor-pointer p-1 rounded-lg flex items-center transition-colors',
             danger ? 'text-muted-foreground hover:text-destructive' : 'text-muted-foreground hover:text-primary',

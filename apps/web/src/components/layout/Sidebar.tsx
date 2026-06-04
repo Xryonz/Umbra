@@ -202,6 +202,7 @@ export default function Sidebar({ activeChannelId, onSelectChannel }: SidebarPro
             <TooltipTrigger asChild>
               <button
                 onClick={() => { navigate('/app/dm'); closeMobile() }}
+                aria-label="Mensagens diretas"
                 className="size-11 mb-1 shrink-0 p-0 bg-transparent border-none rounded-xl flex items-center justify-center hover:scale-110 hover:brightness-110 transition-all cursor-pointer"
               >
                 <UmbraLogo size={44} />
@@ -464,6 +465,7 @@ function ServerIcon({ server, isActive, index, isGroup = false, onClick, onConte
             onTouchMove={longPress.onTouchMove}
             onTouchEnd={longPress.onTouchEnd}
             onTouchCancel={longPress.onTouchCancel}
+            aria-label={`${isGroup ? 'Grupo' : 'Servidor'} ${server.name}`}
             className={cn(
               'relative size-10 shrink-0 p-0 cursor-pointer overflow-hidden flex items-center justify-center font-(family-name:--font-display) transition-all duration-300 ease-(--ease-spring)',
               'border outline-none rounded-2xl',
@@ -510,6 +512,7 @@ function StripButton({ title, icon, onClick }: {
       <TooltipTrigger asChild>
         <button
           onClick={handle}
+          aria-label={title}
           className="size-10 shrink-0 rounded-2xl border border-dashed border-(--border) bg-transparent text-(--text-3) cursor-pointer flex items-center justify-center transition-all duration-300 ease-(--ease-spring) hover:bg-(--accent-dim) hover:border-(--accent) hover:text-(--accent) hover:scale-105 active:scale-90 relative overflow-visible"
         >
           {icon}
