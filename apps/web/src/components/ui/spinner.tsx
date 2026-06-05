@@ -1,20 +1,14 @@
-import * as React from 'react'
-import { Loader2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import OrbitSpinner from '@/components/astra/OrbitSpinner'
 
-interface SpinnerProps extends React.HTMLAttributes<SVGElement> {
-  size?: number
+interface SpinnerProps {
+  size?:      number
+  className?: string
 }
 
 /**
- * Spinner — loader minimal. Usa Loader2 do Lucide com animação rotate.
+ * Spinner — loader minimal. Delega ao OrbitSpinner (3 dots em órbita)
+ * pra manter identidade Astra. Mesma API que antes (size + className).
  */
-export function Spinner({ size = 16, className, ...props }: SpinnerProps) {
-  return (
-    <Loader2
-      className={cn('animate-spin text-(--accent)', className)}
-      style={{ width: size, height: size }}
-      {...props as any}
-    />
-  )
+export function Spinner({ size = 16, className }: SpinnerProps) {
+  return <OrbitSpinner size={size} className={className} />
 }
