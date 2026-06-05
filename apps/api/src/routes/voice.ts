@@ -110,7 +110,7 @@ router.post('/token', requireAuth, validate(TokenSchema), asyncHandler(async (re
 
 /**
  * GET /api/voice/presence?channelIds=a,b,c
- *  → { [channelId]: string[]/* user identities */ }
+ *   -> { [channelId]: identities[] }
  *
  * Usado pela Sidebar pra renderizar "quem está em cada canal voice".
  * Polling client a cada ~10s. Cache server 5s.
