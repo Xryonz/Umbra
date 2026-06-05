@@ -234,7 +234,7 @@ export function VoiceMessage({ url, duration }: { url: string; duration?: number
   const progressIdx = total > 0 ? Math.floor((pos / total) * bars.length) : 0
 
   return (
-    <div className="my-1 inline-flex items-center gap-3 px-3 py-2 border border-(--border) bg-(--raised)/40 max-w-90">
+    <div className="my-1 inline-flex items-center gap-3 px-3 py-2 rounded-xl border border-(--border) bg-(--raised)/40 max-w-90">
       <button
         onClick={toggle}
         className="shrink-0 size-9 grid place-items-center rounded-full border border-(--accent) text-(--accent) hover:bg-(--accent) hover:text-(--accent-foreground) transition-colors"

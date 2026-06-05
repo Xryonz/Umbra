@@ -26,6 +26,17 @@ export function CreateChannelDialog({ open, onClose, serverId }: Props) {
 
   useEffect(() => { if (!open) { setName(''); setType('TEXT'); setError('') } }, [open])
 
+  // Backend exige /^[a-z0-9-]+$/. Convertemos input do user pro slug válido
+  // em tempo real (lowercase, acentos removidos, espaços → hífen, demais → '').
+  const toSlug = (s: string) =>
+    s
+      .normalize('NFD').replace(/\p{Diacritic}/gu, '')
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+
   const createChannel = useMutation({
     mutationFn: async ({ n, t }: { n: string; t: 'TEXT' | 'VOICE' }) =>
       (await api.post(`/api/servers/${serverId}/channels`, { name: n, type: t })).data.data,
@@ -37,9 +48,9 @@ export function CreateChannelDialog({ open, onClose, serverId }: Props) {
   })
 
   const submit = () => {
-    const trimmed = name.trim()
-    if (!trimmed) return
-    createChannel.mutate({ n: trimmed, t: type })
+    const slug = toSlug(name)
+    if (!slug) { setError('Nome precisa de ao menos 1 letra ou número'); return }
+    createChannel.mutate({ n: slug, t: type })
   }
 
   return (
@@ -62,6 +73,11 @@ export function CreateChannelDialog({ open, onClose, serverId }: Props) {
               placeholder="Ex: geral"
               maxLength={50}
             />
+            {name && toSlug(name) !== name.trim().toLowerCase() && (
+              <p className="text-marg text-(--text-3) m-0">
+                Salvo como <code className="px-1 bg-(--raised) border border-(--border)">{toSlug(name) || '—'}</code>
+              </p>
+            )}
           </div>
 
           <div className="flex flex-col gap-1.5">
