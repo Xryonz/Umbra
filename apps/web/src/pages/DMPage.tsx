@@ -69,7 +69,7 @@ export default function DMPage() {
         )}
       >
         {/* Header */}
-        <div className="h-16 px-4 flex items-center gap-3 border-b border-(--border) shrink-0">
+        <div className="h-14 px-4 flex items-center gap-3 border-b border-(--border) shrink-0">
           {/* Burger mobile-only */}
           <button
             onClick={openMobile}
@@ -105,7 +105,7 @@ export default function DMPage() {
             {/* DM header */}
             <div
               key={activeDM.conversationId + '-hdr'}
-              className="h-16 px-4 sm:px-6 flex items-center gap-3 border-b border-(--border) bg-(--base) shrink-0 anim-fade-up"
+              className="h-14 px-4 sm:px-6 flex items-center gap-3 border-b border-(--border) bg-(--base) shrink-0 anim-fade-up"
             >
               {/* Back-to-list mobile-only */}
               <button

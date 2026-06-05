@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback, useEffect, lazy, Suspense } from 'react'
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import Sidebar from '@/components/layout/Sidebar'
+import MobileBottomNav from '@/components/layout/MobileBottomNav'
+import MobileMoreSheet from '@/components/layout/MobileMoreSheet'
 import AstraLogo from '@/components/AstraLogo'
 import { Reveal } from '@/components/anim/Reveal'
 import { PageTransition } from '@/components/anim/PageTransition'
@@ -84,7 +86,7 @@ function ChannelView() {
             {/* Chat header — minimal, hairline bottom border */}
             <header
               key={activeChannel.id + '-hdr'}
-              className="shrink-0 h-12 px-3 sm:px-5 flex items-center gap-2 border-b border-(--border) bg-(--base)"
+              className="shrink-0 h-14 px-3 sm:px-5 flex items-center gap-2 border-b border-(--border) bg-(--base)"
             >
               {/* Burger mobile-only */}
               <button
@@ -107,7 +109,7 @@ function ChannelView() {
               <div className="ml-auto flex items-center gap-0.5 shrink-0">
                 <button
                   onClick={openCommandPalette}
-                  className="size-9 sm:size-8 flex items-center justify-center text-(--text-3) hover:text-(--accent) transition-colors cursor-pointer"
+                  className="size-10 sm:size-8 flex items-center justify-center text-(--text-3) hover:text-(--accent) transition-colors cursor-pointer"
                   aria-label="Buscar (Ctrl+K)"
                   title="Buscar (Ctrl+K)"
                 >
@@ -143,10 +145,10 @@ function ChannelView() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
-                      className="size-9 md:hidden flex items-center justify-center text-(--text-3) hover:text-(--accent) transition-colors cursor-pointer"
+                      className="size-11 md:hidden flex items-center justify-center text-(--text-3) hover:text-(--accent) transition-colors cursor-pointer"
                       aria-label="Mais ações"
                     >
-                      <MoreHorizontal className="size-4" />
+                      <MoreHorizontal className="size-5" />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -305,7 +307,7 @@ export default function AppPage() {
   }, [toggleCommandPalette])
 
   return (
-    <div className="flex h-screen-safe overflow-hidden font-(family-name:--font-body)">
+    <div className="flex h-screen-safe overflow-hidden font-(family-name:--font-body) pb-14 md:pb-0">
       {/* Sidebar mounted once — sobrevive entre rotas, sem re-mount/animation bug */}
       <Sidebar
         activeChannelId={activeId}
@@ -336,6 +338,10 @@ export default function AppPage() {
         <VoiceCallPanel />
         <IncomingCallModal />
       </Suspense>
+
+      {/* Mobile-only: tab bar permanente no bottom + sheet "Mais" */}
+      <MobileBottomNav />
+      <MobileMoreSheet />
     </div>
   )
 }

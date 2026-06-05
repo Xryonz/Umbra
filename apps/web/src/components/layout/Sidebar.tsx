@@ -224,14 +224,15 @@ export default function Sidebar({ activeChannelId, onSelectChannel }: SidebarPro
 
       <div
         className={cn(
-          'flex h-full shrink-0 z-50',
-          // Desktop: estático na grid normal
-          'md:relative md:translate-x-0 md:transition-none',
-          // Mobile: fixed off-screen, slide-in com overshoot elastic
-          'fixed top-0 left-0 bottom-0 transition-transform',
+          'flex shrink-0 z-50',
+          // Desktop: estático na grid normal, ocupa altura cheia
+          'md:relative md:translate-y-0 md:transition-none md:h-full',
+          // Mobile: bottom sheet — slide de baixo pra cima, 85vh, deixa um
+          // gap de ~15vh em cima pra "peek" do conteúdo + safe-area inferior
+          'fixed left-0 right-0 bottom-0 h-[85vh] transition-transform',
           mobileOpen
-            ? 'translate-x-0 duration-[460ms] [transition-timing-function:cubic-bezier(0.34,1.32,0.55,1)]'
-            : '-translate-x-full md:translate-x-0 duration-[280ms] [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]',
+            ? 'translate-y-0 duration-320 [transition-timing-function:cubic-bezier(0.34,1.32,0.55,1)]'
+            : 'translate-y-full md:translate-y-0 duration-260 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]',
         )}
       >
 

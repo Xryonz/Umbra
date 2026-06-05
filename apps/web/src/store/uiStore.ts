@@ -23,6 +23,10 @@ interface UIState {
   /** Voice call stage (fullscreen expansion do PiP) */
   voiceStageOpen: boolean
   setVoiceStageOpen: (open: boolean) => void
+
+  /** Sheet "Mais" da bottom nav mobile (profile/settings/logout) */
+  mobileMoreOpen: boolean
+  setMobileMoreOpen: (open: boolean) => void
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -44,4 +48,7 @@ export const useUIStore = create<UIState>((set) => ({
 
   voiceStageOpen: false,
   setVoiceStageOpen: (open) => set({ voiceStageOpen: open }),
+
+  mobileMoreOpen: false,
+  setMobileMoreOpen: (open) => set({ mobileMoreOpen: open }),
 }))

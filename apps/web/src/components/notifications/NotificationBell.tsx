@@ -34,6 +34,13 @@ export function NotificationBell() {
   const [open, setOpen] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
 
+  // Mobile bottom nav abre via custom event (sino fica só no desktop header)
+  useEffect(() => {
+    const onOpen = () => setOpen(true)
+    window.addEventListener('astra:open-notifications', onOpen)
+    return () => window.removeEventListener('astra:open-notifications', onOpen)
+  }, [])
+
   const { data: count } = useNotificationCount()
   const unread = count?.count ?? 0
 
