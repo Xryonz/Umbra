@@ -93,27 +93,30 @@ export default function StarField() {
         <span
           key={i}
           aria-hidden
-          className="astra-drift"
           style={{
-            position:          'absolute',
-            left:              `${s.x}%`,
-            top:               `${s.y}%`,
-            width:             `${s.size}px`,
-            height:            `${s.size}px`,
-            animationDuration: `${s.driftDur}s`,
-            animationDirection: s.driftDir > 0 ? 'normal' : 'reverse',
+            position:    'absolute',
+            display:     'block',
+            left:        `${s.x}%`,
+            top:         `${s.y}%`,
+            width:       `${s.size}px`,
+            height:      `${s.size}px`,
+            // animation shorthand inline → vence cascata sem ambiguidade
+            // de class vs longhands. Direção alternada por índice (sem chance
+            // de prop ignorada). 1 anim só: translate sutil em loop.
+            animation:   `astraDrift ${s.driftDur}s linear infinite ${s.driftDir > 0 ? 'normal' : 'reverse'} ${(s.delay * -1.5).toFixed(2)}s`,
+            willChange:  'transform',
           }}
         >
           <span
-            className="astra-twinkle"
+            aria-hidden
             style={{
-              display:           'block',
-              width:             '100%',
-              height:            '100%',
-              borderRadius:      '50%',
-              background:        'currentColor',
-              animationDelay:    `${s.delay}s`,
-              animationDuration: `${s.dur}s`,
+              display:      'block',
+              width:        '100%',
+              height:       '100%',
+              borderRadius: '50%',
+              background:   'currentColor',
+              animation:    `astraTwinkle ${s.dur}s ease-in-out infinite ${s.delay.toFixed(2)}s`,
+              willChange:   'transform, opacity',
             }}
           />
         </span>
