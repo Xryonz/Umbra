@@ -30,6 +30,12 @@ export interface PushPayload {
   tag?:  string
   /** se true, replaces qualquer notificação anterior com mesma `tag` */
   renotify?: boolean
+  /** Quando true, SW renderiza com [Abrir] [Responder] (input inline). */
+  actionable?: boolean
+  /** Necessário pra reply inline funcionar (SW posta no canal certo). */
+  channelId?: string
+  /** Idem pra DMs. */
+  dmConvId?:  string
 }
 
 /**

@@ -394,6 +394,8 @@ export function createMessagesRouter(io: SocketServer) {
                   url:   '/app',
                   tag:   `mention-${channelId}`,
                   icon:  author.avatarUrl ?? undefined,
+                  actionable: true,
+                  channelId,
                 },
               }).catch(() => {})
             }
@@ -420,6 +422,8 @@ export function createMessagesRouter(io: SocketServer) {
                   url:   '/app',
                   tag:   `reply-${inserted.id}`,
                   icon:  author.avatarUrl ?? undefined,
+                  actionable: true,
+                  channelId,
                 },
               }).catch(() => {})
             }

@@ -13,6 +13,15 @@ migrateLocalStorage()  // rebrand umbra-* → astra-*
 initSentry()
 restoreTheme()
 
+// Registra SW pra cache de assets + offline fallback. Em dev pulamos
+// (Vite serve direto, SW atrapalha HMR). Em prod, SW também escuta push
+// — registro idempotente compartilhado com usePushNotifications.
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {})
+  })
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

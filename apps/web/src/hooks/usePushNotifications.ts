@@ -43,13 +43,25 @@ export function usePushNotifications() {
     })()
   }, [])
 
-  // Recebe navigate vindo do SW (push click)
+  // Recebe navigate + reply vindos do SW (push click + actionable)
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return
-    const onMsg = (e: MessageEvent) => {
+    const onMsg = async (e: MessageEvent) => {
       const d = e.data
-      if (d && d.type === 'push-navigate' && typeof d.url === 'string') {
+      if (!d) return
+      if (d.type === 'push-navigate' && typeof d.url === 'string') {
         try { navigate(d.url) } catch {}
+      }
+      if (d.type === 'push-reply' && typeof d.content === 'string' && d.content.trim()) {
+        try {
+          if (d.channelId) {
+            await api.post(`/api/channels/${d.channelId}/messages`, { content: d.content })
+          } else if (d.dmConvId) {
+            await api.post(`/api/dm/${d.dmConvId}/messages`, { content: d.content })
+          }
+        } catch (err) {
+          console.error('[Push reply] falhou:', err)
+        }
       }
     }
     navigator.serviceWorker.addEventListener('message', onMsg)
