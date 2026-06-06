@@ -19,7 +19,7 @@ import EditHistoryPopover from '@/components/chat/EditHistoryPopover'
 import { useIsBookmarked, useToggleBookmark } from '@/hooks/useBookmarks'
 import { TRANSLATE_LANGS, useTranslateMessage, type TranslateLang } from '@/hooks/useTranslate'
 import { cn } from '@/lib/utils'
-import type { MessageWithAuthor } from '@umbra/types'
+import type { MessageWithAuthor } from '@astra/types'
 
 import { MessageReactions, type Reaction } from './Message/MessageReactions'
 import { MessageAttachments } from './Message/MessageAttachments'
@@ -42,6 +42,7 @@ interface MessageItemProps {
   grouped:    boolean
   delay?:     number
   isPending?: boolean
+  roleColor?: string | null
   onEdit?:    (messageId: string, content: string) => void
   onDelete?:  (messageId: string) => void
   onReact?:   (messageId: string, emoji: string) => void
@@ -383,7 +384,7 @@ function EmojiPicker({ onPick, onClose }: { onPick: (e: string) => void; onClose
 
 // ─── Main component ───────────────────────────────────────────
 function MessageItemImpl({
-  message, grouped, delay = 0, isPending = false,
+  message, grouped, delay = 0, isPending = false, roleColor = null,
   onEdit, onDelete, onReact, onReply,
 }: MessageItemProps) {
   const currentUser = useAuthStore((s) => s.user)
@@ -426,10 +427,10 @@ function MessageItemImpl({
   }, { ms: 480 })
 
   const { author, content, createdAt } = message
-  const isBot       = (author as any).isBot ?? author.username === 'umbra_bot'
+  const isBot       = (author as any).isBot ?? (author.username === 'astra_bot' || author.username === 'umbra_bot')
   const isMine      = author.id === currentUser?.id
   const fallback    = isBot ? 'var(--accent)' : defaultColor(author.id)
-  const parsedColor = parseColor((message as any).authorColor, fallback)
+  const parsedColor = parseColor(roleColor ?? (message as any).authorColor, fallback)
   const reactions   = (message as any).reactions as Reaction[] ?? []
 
   // Opens the profile card
@@ -833,24 +834,33 @@ function MessageItemImpl({
         onCopy={() => navigator.clipboard.writeText(content).catch(() => {})}
       />
 
-      <CreateThreadDialog
-        open={showCreateThread}
-        onClose={() => setShowCreateThread(false)}
-        onCreate={handleCreateThread}
-      />
+      {/* Dialogs renderizam só quando abertos — antes ficavam montados em
+          TODAS as N msgs visíveis (3 dialogs × 20 msgs = 60 árvores Radix
+          ociosas). Agora paga só na hora do click. */}
+      {showCreateThread && (
+        <CreateThreadDialog
+          open={showCreateThread}
+          onClose={() => setShowCreateThread(false)}
+          onCreate={handleCreateThread}
+        />
+      )}
 
-      <EditModal
-        open={showEdit}
-        content={content}
-        onSave={handleEdit}
-        onClose={() => setShowEdit(false)}
-      />
+      {showEdit && (
+        <EditModal
+          open={showEdit}
+          content={content}
+          onSave={handleEdit}
+          onClose={() => setShowEdit(false)}
+        />
+      )}
 
-      <DeleteConfirm
-        open={showDeleteConfirm}
-        onConfirm={handleDeleteConfirmed}
-        onCancel={() => setShowDeleteConfirm(false)}
-      />
+      {showDeleteConfirm && (
+        <DeleteConfirm
+          open={showDeleteConfirm}
+          onConfirm={handleDeleteConfirmed}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
+      )}
 
       {/* Profile card — shown when avatar or name is clicked */}
       {profileUserId && (

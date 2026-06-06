@@ -8,7 +8,7 @@ import { useUnread } from '@/hooks/useUnread'
 import MessageItem from './MessageItem'
 import { MessageListSkeleton } from '@/components/skeletons/MessageListSkeleton'
 import { Empty, EmptyIcon, EmptyLabel, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
-import type { MessageWithAuthor, PaginatedResponse } from '@umbra/types'
+import type { MessageWithAuthor, PaginatedResponse } from '@astra/types'
 
 // Optimistic messages have this extra field
 type OptimisticMessage = MessageWithAuthor & { optimisticId?: string; isPending?: boolean }
@@ -226,21 +226,13 @@ export default function MessageList({
     return () => clearTimeout(t)
   }, [channelId, confirmedMessages.length, markRead])
 
-  // Merge confirmed + optimistic — useMemo evita re-spread caro em renders
-  // não-relacionados (scroll, hover, etc). Também aplica roleColor aqui
-  // (era feito inline no .map → spread {...msg} novo a cada render quebrava
-  // memo do MessageItem). Agora reuso a MESMA referência em re-renders
-  // não-relacionados → MessageItem memo realmente bate.
-  const allMessages = useMemo(
-    () => {
-      const merged = [...confirmedMessages, ...optimisticMsgs]
-      return merged.map((msg) => {
-        const roleColor = colorByUser.get(msg.author.id)
-        if (!roleColor || roleColor === (msg as any).authorColor) return msg
-        return { ...msg, authorColor: roleColor } as MessageWithAuthor
-      })
-    },
-    [confirmedMessages, optimisticMsgs, colorByUser],
+  // Merge confirmed + optimistic — sem map de authorColor (movido pro
+  // MessageItem, recebe colorByUser como prop). Evita iterar N msgs a cada
+  // mudança. Ref de cada msg fica idêntica à do cache → memo do MessageItem
+  // bate até em renders por socket events de outras msgs.
+  const allMessages = useMemo<MessageWithAuthor[]>(
+    () => [...confirmedMessages, ...optimisticMsgs],
+    [confirmedMessages, optimisticMsgs],
   )
 
   // ── Virtualização ─────────────────────────────────────────
@@ -251,8 +243,8 @@ export default function MessageList({
   const virtualizer = useVirtualizer({
     count: allMessages.length,
     getScrollElement: () => scrollRef.current,
-    estimateSize: () => 84,
-    overscan: 8,
+    estimateSize: () => 100,  // média mais realista (84 era otimista demais)
+    overscan: 5,              // 5 acima/baixo é suficiente; 8 inflava DOM em scroll rápido
     getItemKey: (i) => (allMessages[i] as OptimisticMessage).optimisticId ?? allMessages[i].id,
   })
 
@@ -362,6 +354,7 @@ export default function MessageList({
                 grouped={grouped}
                 delay={0}
                 isPending={(msg as OptimisticMessage).isPending}
+                roleColor={colorByUser.get(msg.author.id) ?? null}
                 onReply={onReply}
               />
             </div>
