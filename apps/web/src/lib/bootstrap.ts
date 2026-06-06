@@ -5,10 +5,13 @@ import { getStoredRefreshToken, setStoredRefreshToken, clearStoredRefreshToken, 
 import { applyTheme } from '@/lib/theme'
 
 /**
- * Em cold load, tenta restaurar accessToken usando refreshToken de localStorage.
+ * Em cold load, tenta restaurar sessão usando refreshToken de localStorage.
  *
- *  - Se há refresh em localStorage válido → seta accessToken, conecta socket, retorna true
- *  - Caso contrário → limpa auth state, retorna false
+ * Refresh token (localStorage) é a fonte de verdade — persiste mesmo quando
+ * sessionStorage é limpo (fechou browser, nova aba). Se POST /refresh OK,
+ * busca user em /me e reativa auth completo. Antes o bootstrap dava early-
+ * return em !isAuthenticated (sessionStorage), o que quebrava auto-login
+ * em qualquer reabrir de navegador.
  *
  * Dedup em nível de módulo: refresh é rotacionado a cada uso, então
  * chamar 2x em paralelo (StrictMode) quebraria a segunda chamada.
@@ -22,32 +25,43 @@ export function bootstrapAuth(): Promise<boolean> {
 }
 
 async function doBootstrap(): Promise<boolean> {
-  const { isAuthenticated, accessToken, logout, setAccessToken } = useAuthStore.getState()
-
+  const { accessToken } = useAuthStore.getState()
   if (accessToken) return true
-  if (!isAuthenticated) return false
 
   const storedRefresh = getStoredRefreshToken()
   if (!storedRefresh) {
-    logout()
+    useAuthStore.getState().logout()
     return false
   }
 
   try {
-    const { data } = await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/auth/refresh`,
+    const apiUrl = import.meta.env.VITE_API_URL
+    const { data: refreshData } = await axios.post(
+      `${apiUrl}/api/auth/refresh`,
       {},
       { headers: { Authorization: `Bearer ${storedRefresh}` } }
     )
-    setAccessToken(data.data.accessToken)
-    setStoredRefreshToken(data.data.refreshToken)
+    const newAccess  = refreshData.data.accessToken
+    const newRefresh = refreshData.data.refreshToken
+    setStoredRefreshToken(newRefresh)
+
+    // Se sessionStorage ainda tem o user (mesma aba) usa direto; senão GET /me.
+    const cachedUser = useAuthStore.getState().user
+    if (cachedUser) {
+      useAuthStore.getState().setAuth(cachedUser, newAccess)
+    } else {
+      const { data: meData } = await axios.get(`${apiUrl}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${newAccess}` },
+      })
+      useAuthStore.getState().setAuth(meData.data.user, newAccess)
+    }
+
     try { connectSocket() } catch { /* ignore */ }
-    // Sync de preferências (tema) com server. Não bloqueia o boot — roda em paralelo.
     void syncPreferencesFromServer()
     return true
   } catch {
     clearStoredRefreshToken()
-    logout()
+    useAuthStore.getState().logout()
     return false
   }
 }
