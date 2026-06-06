@@ -71,6 +71,20 @@
       "when": 1784000000000,
       "tag": "0009_preferences",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1784500000000,
+      "tag": "0010_session_meta",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1785000000000,
+      "tag": "0011_search_trgm",
+      "breakpoints": true
     }
   ]
 }

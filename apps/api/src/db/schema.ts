@@ -84,12 +84,18 @@ export const mutedMembers = pgTable('MutedMember', {
 
 // ─── RefreshToken ─────────────────────────────────────────────
 export const refreshTokens = pgTable('RefreshToken', {
-  id:        text('id').primaryKey().$defaultFn(createId),
-  token:     text('token').notNull().unique(),
-  userId:    text('userId').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  expiresAt: timestamp('expiresAt', { precision: 3 }).notNull(),
-  createdAt: timestamp('createdAt', { precision: 3 }).notNull().defaultNow(),
-  revokedAt: timestamp('revokedAt', { precision: 3 }),
+  id:         text('id').primaryKey().$defaultFn(createId),
+  token:      text('token').notNull().unique(),
+  userId:     text('userId').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  expiresAt:  timestamp('expiresAt', { precision: 3 }).notNull(),
+  createdAt:  timestamp('createdAt', { precision: 3 }).notNull().defaultNow(),
+  revokedAt:  timestamp('revokedAt', { precision: 3 }),
+  /** User-Agent do login — pra UI mostrar "iPhone Safari", "Chrome Mac" */
+  userAgent:  text('userAgent'),
+  /** IP de origem (truncado /24 IPv4 ou /48 IPv6 por privacidade) */
+  ip:         text('ip'),
+  /** Atualizado a cada /refresh — UI marca "ativa há 2min" / "há 3d" */
+  lastUsedAt: timestamp('lastUsedAt', { precision: 3 }),
 }, (t) => ({
   byUser: index('RefreshToken_userId_idx').on(t.userId),
 }))

@@ -82,7 +82,10 @@ router.post(
       .returning(userSafeColumns)
 
     const { token: accessToken } = generateAccessToken(user.id)
-    const { refreshToken }       = await createRefreshToken(user.id)
+    const { refreshToken }       = await createRefreshToken(user.id, {
+      userAgent: req.header('user-agent') ?? undefined,
+      ip:        req.ip,
+    })
 
     res.status(201).json({ data: { user, accessToken, refreshToken } })
   })
@@ -112,7 +115,10 @@ router.post(
     }
 
     const { token: accessToken } = generateAccessToken(user.id)
-    const { refreshToken }       = await createRefreshToken(user.id)
+    const { refreshToken }       = await createRefreshToken(user.id, {
+      userAgent: req.header('user-agent') ?? undefined,
+      ip:        req.ip,
+    })
     const { passwordHash: _, ...userSafe } = user
 
     res.json({ data: { user: userSafe, accessToken, refreshToken } })
@@ -151,7 +157,10 @@ router.post(
     }
 
     const { token: newAccessToken } = generateAccessToken(payload.userId)
-    const { refreshToken: newRefreshToken } = await createRefreshToken(payload.userId)
+    const { refreshToken: newRefreshToken } = await createRefreshToken(payload.userId, {
+      userAgent: req.header('user-agent') ?? undefined,
+      ip:        req.ip,
+    })
 
     res.json({ data: { accessToken: newAccessToken, refreshToken: newRefreshToken } })
   })
@@ -211,7 +220,10 @@ router.get(
         return res.redirect(`${process.env.CLIENT_URL}/login?error=oauth`)
       }
       try {
-        const { refreshToken } = await createRefreshToken(user.id)
+        const { refreshToken } = await createRefreshToken(user.id, {
+          userAgent: req.header('user-agent') ?? undefined,
+          ip:        req.ip,
+        })
         // Hash fragment: não aparece em access logs, server nunca vê.
         res.redirect(`${process.env.CLIENT_URL}/auth/callback#refresh=${encodeURIComponent(refreshToken)}`)
       } catch (e) {
@@ -227,11 +239,39 @@ router.get(
 // outros 30d. Cobertura típica: user que abre o app ao menos 1x/mês
 // fica logado pra sempre. Discord/WhatsApp Web usam padrão similar.
 const REFRESH_TTL_MS = 30 * 24 * 60 * 60 * 1000
-async function createRefreshToken(userId: string) {
+
+/**
+ * Trunca IP pra granularidade ~/24 (IPv4) ou /48 (IPv6). UI mostra
+ * região aproximada sem armazenar IP exato (LGPD/privacy).
+ */
+function truncateIp(ip: string | undefined): string | null {
+  if (!ip) return null
+  const v4mapped = ip.match(/^::ffff:(\d+\.\d+\.\d+)\.\d+$/i)
+  if (v4mapped) return `${v4mapped[1]}.0`
+  const v4 = ip.match(/^(\d+\.\d+\.\d+)\.\d+$/)
+  if (v4) return `${v4[1]}.0`
+  if (ip.includes(':')) {
+    const parts = ip.split(':')
+    return `${parts.slice(0, 3).join(':')}::/48`
+  }
+  return null
+}
+
+async function createRefreshToken(
+  userId: string,
+  meta?: { userAgent?: string; ip?: string },
+) {
   const expiresAt    = new Date(Date.now() + REFRESH_TTL_MS)
   const refreshToken = generateRefreshToken(userId)
   const tokenHash    = hashToken(refreshToken)
-  await db.insert(refreshTokens).values({ token: tokenHash, userId, expiresAt })
+  await db.insert(refreshTokens).values({
+    token:      tokenHash,
+    userId,
+    expiresAt,
+    userAgent:  meta?.userAgent?.slice(0, 256) ?? null,
+    ip:         truncateIp(meta?.ip),
+    lastUsedAt: new Date(),
+  })
   return { refreshToken }
 }
 
