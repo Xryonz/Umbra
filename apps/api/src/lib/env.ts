@@ -35,7 +35,7 @@ const EnvSchema = z.object({
   // Gerar com: npx web-push generate-vapid-keys
   VAPID_PUBLIC_KEY:  z.string().optional(),
   VAPID_PRIVATE_KEY: z.string().optional(),
-  VAPID_SUBJECT:     z.string().default('mailto:dev@umbra.local'),
+  VAPID_SUBJECT:     z.string().default('mailto:dev@astra.local'),
 
   // Giphy GIF API (opcional — picker de GIF fica desligado sem key)
   // Grátis em developers.giphy.com → Create an App → tipo API

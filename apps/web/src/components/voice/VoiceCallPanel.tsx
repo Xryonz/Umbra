@@ -23,7 +23,7 @@ import { useUIStore } from '@/store/uiStore'
 import { useUsersMini } from '@/hooks/useUsersMini'
 import { VoiceCallStage } from './VoiceCallStage'
 
-const PIP_POS_KEY = 'umbra-voice-pip-pos'
+const PIP_POS_KEY = 'astra-voice-pip-pos'
 function loadPos(): { x: number; y: number } {
   try {
     const v = localStorage.getItem(PIP_POS_KEY)
@@ -304,7 +304,7 @@ function RemoteAudioElements() {
           el = document.createElement('audio')
           el.autoplay = true
           ;(el as any).playsInline = true
-          el.setAttribute('data-umbra-voice', '1')
+          el.setAttribute('data-astra-voice', '1')
           document.body.appendChild(el)
           refs.current.set(key, el)
         }

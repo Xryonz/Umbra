@@ -349,7 +349,7 @@ async function maybeSummarize(userId: string, channelId: string): Promise<void> 
   const cutoffTs    = toSummarize[toSummarize.length - 1].ts
 
   const transcript = toSummarize.map((t) =>
-    `[${t.role === 'user' ? 'USER' : 'UMBRA'}]: ${t.content}`
+    `[${t.role === 'user' ? 'USER' : 'ASTRA'}]: ${t.content}`
   ).join('\n')
 
   const res = await callClaude({

@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useDMReads } from '@/hooks/useUnread'
 import { format, isToday, isYesterday } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import type { MessageWithAuthor, PaginatedResponse, Attachment } from '@umbra/types'
+import type { MessageWithAuthor, PaginatedResponse, Attachment } from '@astra/types'
 
 function isImage(a: { type?: string; name?: string; url?: string }) {
   if (a.type?.startsWith('image/')) return true

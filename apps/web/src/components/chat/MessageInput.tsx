@@ -11,7 +11,7 @@ import { useAuthStore } from '@/store/authStore'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { toast } from '@/components/ui/sonner'
 import { cn } from '@/lib/utils'
-import type { MessageWithAuthor, Attachment } from '@umbra/types'
+import type { MessageWithAuthor, Attachment } from '@astra/types'
 
 // Lazy: pickers pesados (emoji-mart ~300KB, giphy w/ network) só carregam ao abrir
 const GifPicker       = lazy(() => import('@/components/chat/GifPicker'))
@@ -215,7 +215,7 @@ export default function MessageInput({
     const hasAttachments = attachments.length > 0
     if ((!trimmed && !hasAttachments) || muted || !user) return
 
-    if (trimmed.toLowerCase().startsWith('/umbra')) {
+    if (trimmed.toLowerCase().startsWith('/astra') || trimmed.toLowerCase().startsWith('/umbra')) {
       setContent('')
       stopTyping()
       try { getSocket().emit('bot_command', { channelId, serverId, content: trimmed }) } catch {}

@@ -1,5 +1,5 @@
 {
-  "name": "umbra",
+  "name": "astra",
   "private": true,
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {

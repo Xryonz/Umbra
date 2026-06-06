@@ -8,7 +8,7 @@ import DMInput from '@/components/dm/DMInput'
 import { DMCallButton } from '@/components/voice/DMCallButton'
 import { Reveal } from '@/components/anim/Reveal'
 import { cn } from '@/lib/utils'
-import type { MessageWithAuthor } from '@umbra/types'
+import type { MessageWithAuthor } from '@astra/types'
 
 type OptimisticMessage = MessageWithAuthor & { optimisticId?: string; isPending?: boolean }
 

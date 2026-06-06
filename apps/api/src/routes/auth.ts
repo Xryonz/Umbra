@@ -15,7 +15,7 @@ import { requireAuth } from '../middleware/auth'
 import { validate } from '../middleware/validate'
 import { authLimiter } from '../middleware/rateLimiter'
 import { asyncHandler } from '../lib/asyncHandler'
-import { RegisterSchema, LoginSchema } from '@umbra/types'
+import { RegisterSchema, LoginSchema } from '@astra/types'
 import { createId } from '../db/cuid'
 import { generateCoordinate } from '../lib/coordinate'
 

@@ -24,7 +24,7 @@ import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { Spinner } from '@/components/ui/spinner'
 import { Checkbox } from '@/components/ui/checkbox'
-import type { ServerWithChannels } from '@umbra/types'
+import type { ServerWithChannels } from '@astra/types'
 
 interface RoleSummary { id: string; name: string; color: string|null; position: number; hoist: boolean }
 interface Member {

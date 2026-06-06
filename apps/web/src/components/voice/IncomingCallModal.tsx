@@ -40,7 +40,7 @@ interface CallerLookup {
 }
 
 const RING_DURATION_MS = 30_000
-const POS_KEY = 'umbra-incoming-pos'
+const POS_KEY = 'astra-incoming-pos'
 
 function loadPos(): { x: number; y: number } {
   try {

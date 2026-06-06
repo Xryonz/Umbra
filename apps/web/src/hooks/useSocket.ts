@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { getSocket } from '@/lib/socket'
-import type { MessageWithAuthor } from '@umbra/types'
+import type { MessageWithAuthor } from '@astra/types'
 
 interface ChannelHandlers {
   onNewMessage:  (msg: MessageWithAuthor) => void

@@ -12,7 +12,7 @@
 import client from 'prom-client'
 
 export const registry = new client.Registry()
-registry.setDefaultLabels({ service: 'umbra-api' })
+registry.setDefaultLabels({ service: 'astra-api' })
 client.collectDefaultMetrics({ register: registry })
 
 // ── HTTP ─────────────────────────────────────────────────────────

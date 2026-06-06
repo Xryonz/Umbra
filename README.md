@@ -1,4 +1,4 @@
-# Umbra
+# Astra
 
 Plataforma de mensagens em tempo real — editorial-dark, anti-Discord. Servidores, canais, DMs, voz, threads, reações, bookmarks, mentions, push notifications.
 

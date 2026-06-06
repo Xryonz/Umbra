@@ -17,11 +17,11 @@ export default function NotificationsSection() {
 
   const prefs = prefsData?.prefs
 
-  const [localMute, setLocalMute] = useState<boolean>(() => localStorage.getItem('umbra-sound') === '0')
+  const [localMute, setLocalMute] = useState<boolean>(() => localStorage.getItem('astra-sound') === '0')
   const toggleLocalMute = () => {
     const next = !localMute
     setLocalMute(next)
-    localStorage.setItem('umbra-sound', next ? '0' : '1')
+    localStorage.setItem('astra-sound', next ? '0' : '1')
   }
 
   const togglePref = (key: keyof NotificationPrefs) => () => {
@@ -48,7 +48,7 @@ export default function NotificationsSection() {
     }
     new Notification('Astra · Teste local', {
       body: 'Se você vê isso, notificações do browser funcionam.',
-      icon: '/umbra-logo.png',
+      icon: '/astra-logo.png',
     })
   }
 

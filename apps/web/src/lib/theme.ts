@@ -57,13 +57,13 @@ export function applyTheme(accentId: string, bgId: string) {
   root.style.setProperty('--void',   bg.base)
   root.style.setProperty('--base',   bg.base === '#06060e' ? '#09091a' : bg.base + '18')
   root.style.setProperty('--raised', bg.raised)
-  localStorage.setItem('umbra-accent', accentId)
-  localStorage.setItem('umbra-bg',     bgId)
+  localStorage.setItem('astra-accent', accentId)
+  localStorage.setItem('astra-bg',     bgId)
 }
 
 export function restoreTheme() {
   applyTheme(
-    localStorage.getItem('umbra-accent') ?? 'gold',
-    localStorage.getItem('umbra-bg')     ?? 'void',
+    localStorage.getItem('astra-accent') ?? 'gold',
+    localStorage.getItem('astra-bg')     ?? 'void',
   )
 }

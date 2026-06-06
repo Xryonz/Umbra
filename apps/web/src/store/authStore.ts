@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import type { UserPublic } from '@umbra/types'
+import type { UserPublic } from '@astra/types'
 import { sentry } from '@/lib/sentry'
 
 export type { UserPublic }
@@ -45,7 +45,7 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name:    'umbra-auth',
+      name:    'astra-auth',
       storage: createJSONStorage(() => sessionStorage),
       partialize: (s) => ({
         user:            s.user,

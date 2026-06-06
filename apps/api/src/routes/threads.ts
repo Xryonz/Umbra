@@ -7,7 +7,7 @@ import { threads, messages, channels, serverMembers, users } from '../db/schema'
 import { requireAuth } from '../middleware/auth'
 import { validate } from '../middleware/validate'
 import { asyncHandler } from '../lib/asyncHandler'
-import { SendMessageSchema } from '@umbra/types'
+import { SendMessageSchema } from '@astra/types'
 import { messagesSentTotal } from '../lib/metrics'
 
 interface CursorPayload { createdAt: Date; id: string }

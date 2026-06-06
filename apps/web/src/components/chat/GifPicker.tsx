@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Search, X, Loader2 } from 'lucide-react'
 import { api } from '@/lib/api'
-import type { Attachment } from '@umbra/types'
+import type { Attachment } from '@astra/types'
 
 interface GifResult {
   id:      string

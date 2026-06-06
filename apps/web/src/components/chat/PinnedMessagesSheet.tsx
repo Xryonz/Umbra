@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Pin, X } from 'lucide-react'
 import { api } from '@/lib/api'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import type { MessageWithAuthor } from '@umbra/types'
+import type { MessageWithAuthor } from '@astra/types'
 
 /**
  * Popover de mensagens fixadas. Antes era um Sheet (off-canvas direita),

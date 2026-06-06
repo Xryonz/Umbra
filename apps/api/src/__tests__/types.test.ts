@@ -1,12 +1,12 @@
 /**
- * Testes dos schemas zod do package `@umbra/types`.
+ * Testes dos schemas zod do package `@astra/types`.
  * Foco em segurança (XSS via attachments) + integridade de mensagens.
  */
 import { describe, it, expect } from 'vitest'
 import {
   AttachmentSchema, SendMessageSchema, EditMessageSchema,
   RegisterSchema, LoginSchema, MessageCursorSchema,
-} from '@umbra/types'
+} from '@astra/types'
 
 describe('AttachmentSchema — URL safety', () => {
   it('aceita http://', () => {

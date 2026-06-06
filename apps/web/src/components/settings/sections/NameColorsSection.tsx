@@ -5,7 +5,7 @@ import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import type { ServerWithChannels } from '@umbra/types'
+import type { ServerWithChannels } from '@astra/types'
 import { SectionHeader } from './_shared'
 
 const NAME_COLOR_PRESETS = [

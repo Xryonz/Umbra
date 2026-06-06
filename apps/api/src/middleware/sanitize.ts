@@ -9,7 +9,7 @@ import { Request, Response, NextFunction } from 'express'
  *    conteúdo legítimo (ex: data: URIs de upload, código com tags em
  *    mensagens).
  *  - O lugar correto para escapar é na renderização, não no armazenamento.
- *  - Esquemas Zod (`@umbra/types`) já validam shape/tamanho de cada campo.
+ *  - Esquemas Zod (`@astra/types`) já validam shape/tamanho de cada campo.
  *
  * Aqui só fazemos um saneamento defensivo de strings em params/query —
  * que costumam ir para logs ou serem ecoadas em headers.

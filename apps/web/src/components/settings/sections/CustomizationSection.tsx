@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { GradientBuilder } from '@/components/settings/GradientBuilder'
 import { cn } from '@/lib/utils'
-import { UpdateProfileSchema, type DisplayFont } from '@umbra/types'
+import { UpdateProfileSchema, type DisplayFont } from '@astra/types'
 import { SectionHeader, Row, SaveStatus } from './_shared'
 
 // ─── DATA ────────────────────────────────────────────────────

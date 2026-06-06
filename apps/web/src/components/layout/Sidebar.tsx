@@ -26,7 +26,7 @@ import { SidebarSkeleton } from '@/components/skeletons/SidebarSkeleton'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import ConstellationEmpty from '@/components/astra/ConstellationEmpty'
 import { cn } from '@/lib/utils'
-import type { ServerWithChannels, ChannelInfo } from '@umbra/types'
+import type { ServerWithChannels, ChannelInfo } from '@astra/types'
 
 interface SidebarProps {
   activeChannelId: string | null
@@ -43,7 +43,7 @@ export default function Sidebar({ activeChannelId, onSelectChannel }: SidebarPro
 
   const [activeServerId,  setActiveServerId]  = useState<string | null>(null)
   const [collapsed,       setCollapsed]       = useState<boolean>(() => {
-    const stored = localStorage.getItem('umbra-sidebar-collapsed')
+    const stored = localStorage.getItem('astra-sidebar-collapsed')
     if (stored !== null) return stored === '1'
     // Default colapsado em mobile (< 768px)
     return typeof window !== 'undefined' && window.innerWidth < 768
@@ -326,7 +326,7 @@ export default function Sidebar({ activeChannelId, onSelectChannel }: SidebarPro
             onClick={() => {
               setCollapsed((c) => {
                 const next = !c
-                localStorage.setItem('umbra-sidebar-collapsed', next ? '1' : '0')
+                localStorage.setItem('astra-sidebar-collapsed', next ? '1' : '0')
                 return next
               })
             }}

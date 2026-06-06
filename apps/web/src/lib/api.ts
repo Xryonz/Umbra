@@ -8,7 +8,7 @@ export const apiBaseUrl = API_URL
 export const resolveApiUrl = (url: string) =>
   url.startsWith('http') || url.startsWith('data:') ? url : `${API_URL}${url}`
 
-const REFRESH_KEY = 'umbra-refresh'
+const REFRESH_KEY = 'astra-refresh'
 export const getStoredRefreshToken = () => localStorage.getItem(REFRESH_KEY) || null
 export const setStoredRefreshToken = (token: string) => localStorage.setItem(REFRESH_KEY, token)
 export const clearStoredRefreshToken = () => localStorage.removeItem(REFRESH_KEY)

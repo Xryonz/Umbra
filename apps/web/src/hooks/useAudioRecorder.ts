@@ -13,7 +13,7 @@
  */
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { api } from '@/lib/api'
-import type { Attachment } from '@umbra/types'
+import type { Attachment } from '@astra/types'
 
 const MAX_DURATION_MS = 60_000
 const BAR_COUNT       = 16

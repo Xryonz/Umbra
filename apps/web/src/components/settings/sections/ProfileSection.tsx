@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { UpdateProfileSchema } from '@umbra/types'
+import { UpdateProfileSchema } from '@astra/types'
 import { SectionHeader, Row, SaveStatus } from './_shared'
 
 const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']

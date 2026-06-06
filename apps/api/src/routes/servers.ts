@@ -6,7 +6,7 @@ import { servers, serverMembers, channels, channelRolePerms, users, roles, membe
 import { requireAuth } from '../middleware/auth'
 import { validate } from '../middleware/validate'
 import { asyncHandler } from '../lib/asyncHandler'
-import { CreateServerSchema, CreateChannelSchema } from '@umbra/types'
+import { CreateServerSchema, CreateChannelSchema } from '@astra/types'
 import { PERMS, getMemberPerms, filterVisibleChannels } from '../lib/permissions'
 import { AUDIT, audit } from '../lib/audit'
 import { createId } from '../db/cuid'

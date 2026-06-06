@@ -65,7 +65,7 @@ function showLocalNotification(title: string, body: string, icon?: string, url?:
   if (!('Notification' in window)) return
   if (Notification.permission !== 'granted') return
   try {
-    const n = new Notification(title, { body, icon: icon ?? '/umbra-logo.png', tag: url ?? 'umbra' })
+    const n = new Notification(title, { body, icon: icon ?? '/astra-logo.png', tag: url ?? 'astra' })
     n.onclick = () => {
       window.focus()
       if (url) window.location.href = url
@@ -115,7 +115,7 @@ export function useInAppNotifications() {
 
       // Som — respeita pref + se localStorage flag de "global mute"
       const soundsAllowed = prefs ? prefs.sounds : true
-      const localMute = localStorage.getItem('umbra-sound') === '0'
+      const localMute = localStorage.getItem('astra-sound') === '0'
       if (soundsAllowed && !localMute) playPing(p.type)
 
       // Banner — só se janela sem foco

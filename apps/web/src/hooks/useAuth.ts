@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { api, setStoredRefreshToken, clearStoredRefreshToken, getStoredRefreshToken } from '@/lib/api'
 import { connectSocket, disconnectSocket } from '@/lib/socket'
 import { useAuthStore } from '@/store/authStore'
-import type { LoginInput, RegisterInput } from '@umbra/types'
+import type { LoginInput, RegisterInput } from '@astra/types'
 
 export function useAuth() {
   const navigate = useNavigate()

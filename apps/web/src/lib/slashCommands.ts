@@ -51,7 +51,7 @@ export function listSlashCommands(): ReadonlyArray<SlashCommand> {
 /**
  * Se `text` for um slash command suportado, retorna o resultado transformado.
  * Senão retorna null (caller manda o texto raw).
- * `/umbra` é tratado em outro lugar (bot) — não conflita.
+ * `/astra` (e legado `/umbra`) é tratado em outro lugar (bot) — não conflita.
  */
 export function applySlashCommand(text: string): string | null {
   const m = text.match(/^\/([a-z]+)(?:\s+(.*))?$/i)

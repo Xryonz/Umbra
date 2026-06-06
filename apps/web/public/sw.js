@@ -16,9 +16,9 @@ self.addEventListener('push', (event) => {
   const title   = payload.title || 'Astra'
   const options = {
     body:        payload.body  || '',
-    icon:        payload.icon  || '/umbra-logo.png',
-    badge:       '/umbra-logo.png',
-    tag:         payload.tag   || 'umbra',
+    icon:        payload.icon  || '/astra-logo.png',
+    badge:       '/astra-logo.png',
+    tag:         payload.tag   || 'astra',
     renotify:    !!payload.renotify,
     data:        { url: payload.url || '/' },
     timestamp:   Date.now(),

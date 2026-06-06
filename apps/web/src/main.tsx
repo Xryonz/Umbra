@@ -7,7 +7,9 @@ import { restoreTheme } from '@/lib/theme'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { initSentry } from '@/lib/sentry'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { migrateLocalStorage } from '@/lib/migrateLocalStorage'
 
+migrateLocalStorage()  // rebrand umbra-* → astra-*
 initSentry()
 restoreTheme()
 

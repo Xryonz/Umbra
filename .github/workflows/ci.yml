@@ -24,13 +24,13 @@ jobs:
         run: npm install --legacy-peer-deps
 
       - name: Build types package
-        run: npm run build --workspace=@umbra/types
+        run: npm run build --workspace=@astra/types
 
       - name: Type-check API
-        run: npm exec --workspace=@umbra/api -- tsc --noEmit
+        run: npm exec --workspace=@astra/api -- tsc --noEmit
 
       - name: Type-check Web
-        run: npm exec --workspace=@umbra/web -- tsc --noEmit
+        run: npm exec --workspace=@astra/web -- tsc --noEmit
 
       - name: Test API
-        run: npm test --workspace=@umbra/api
+        run: npm test --workspace=@astra/api

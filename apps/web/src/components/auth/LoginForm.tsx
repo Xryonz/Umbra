@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { LoginSchema, type LoginInput } from '@umbra/types'
+import { LoginSchema, type LoginInput } from '@astra/types'
 
 const editorialInputClass =
   'h-11 rounded-none border-0 border-b border-(--border-mid) bg-transparent px-0 py-2 text-[15px] ' +

@@ -28,7 +28,7 @@ export default defineConfig({
     port: 5173,
   },
   optimizeDeps: {
-    include: ['@umbra/types'],
+    include: ['@astra/types'],
   },
   // Strip console.* + debugger em build de prod. dev mantém pra debug.
   esbuild: {

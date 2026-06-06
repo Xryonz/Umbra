@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { RegisterSchema, type RegisterInput } from '@umbra/types'
+import { RegisterSchema, type RegisterInput } from '@astra/types'
 
 export default function RegisterForm() {
   const { register: registerUser } = useAuth()
