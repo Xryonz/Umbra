@@ -78,17 +78,16 @@ function buildMeteors(): Meteor[] {
   // 3 meteoros com ciclo 30s; visível só 12% (3.6s). Stagger -10s entre
   // cada → aparece 1 a cada ~10s. Sensação de "de vez em quando".
   return Array.from({ length: 3 }, (_, i) => {
-    // mx: deslocamento horizontal randômico (-70 a -25 ou +25 a +70 vw),
-    // sinal alinhado com startX pra meteoro não sair pra fora do lado oposto.
-    const mag = 25 + rand() * 45  // 25-70vw
-    const sign = rand() > 0.5 ? -1 : 1
+    // mx: sempre negativo (esquerda-inferior) — chuva de meteoros estética,
+    // direção consistente. Magnitude varia 25-70vw pra trajetórias distintas.
+    const mag = 25 + rand() * 45
     return {
-      startX:   5 + rand() * 90,         // 5-95% (ampla cobertura horizontal)
-      delay:    -(i * 10) + rand() * 8,  // jitter maior entre meteoros
-      duration: 24 + rand() * 12,        // 24-36s (mais variação)
-      size:     18 + Math.floor(rand() * 14),  // 18-31px
+      startX:   25 + rand() * 70,        // 25-95% (margem pra cair pra esquerda)
+      delay:    -(i * 10) + rand() * 8,
+      duration: 24 + rand() * 12,
+      size:     18 + Math.floor(rand() * 14),
       cw:       rand() > 0.5,
-      mx:       sign * mag,
+      mx:       -mag,                    // sempre esquerda
     }
   })
 }
