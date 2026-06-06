@@ -56,8 +56,8 @@ export function CreateServerDialog({ open, onClose, mode, popOrigin, onCreated }
         } : undefined}
       >
         <DialogHeader className="gap-1.5">
-          <div className="size-10 bg-primary/10 border border-border rounded-xl flex items-center justify-center mb-2">
-            {mode === 'group' ? <Users className="size-5 text-primary" /> : <Plus className="size-5 text-primary" />}
+          <div className="size-10 bg-(--accent-dim) border border-(--accent)/40 rounded-xl flex items-center justify-center mb-2">
+            {mode === 'group' ? <Users className="size-5 text-(--accent)" /> : <Plus className="size-5 text-(--accent)" />}
           </div>
           <DialogTitle>
             {mode === 'group' ? 'Crie um aglomerado' : 'Crie uma constelação'}
