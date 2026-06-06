@@ -54,9 +54,12 @@ healthRouter.get(['/health', '/ready'], async (_req, res) => {
   const [db, rd] = await Promise.all([checkDb(), checkRedis()])
   const ok = db.ok && rd.ok
   res.status(ok ? 200 : 503).json({
-    status: ok ? 'ok' : 'degraded',
-    ts:     new Date().toISOString(),
-    checks: { db, redis: rd },
+    status:    ok ? 'ok' : 'degraded',
+    ts:        new Date().toISOString(),
+    uptimeS:   Math.round(process.uptime()),
+    release:   env.RELEASE ?? null,
+    voiceCfg:  !!env.LIVEKIT_URL,
+    checks:    { db, redis: rd },
   })
 })
 
