@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CornerDownRight, File as FileIcon, Reply } from 'lucide-react'
 import { api, resolveApiUrl } from '@/lib/api'
-import { getSocket } from '@/lib/socket'
+import { getSocket, trackJoinDM, trackLeaveDM } from '@/lib/socket'
 import { useAuthStore } from '@/store/authStore'
 import { useDMReads } from '@/hooks/useUnread'
 import { format, isToday, isYesterday } from 'date-fns'
@@ -115,8 +115,12 @@ export default function DMChat({ conversationId, otherUser, onRegisterOptimistic
   useEffect(() => {
     let socket: ReturnType<typeof getSocket>
     try { socket = getSocket() } catch { return }
+    trackJoinDM(conversationId)
     socket.emit('join_dm', conversationId)
-    return () => { socket.emit('leave_dm', conversationId) }
+    return () => {
+      trackLeaveDM(conversationId)
+      socket.emit('leave_dm', conversationId)
+    }
   }, [conversationId])
 
   // Real-time new messages

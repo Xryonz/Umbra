@@ -5,14 +5,17 @@ let socket: Socket | null = null
 let heartbeatInterval: ReturnType<typeof setInterval> | null = null
 let unsubAuth: (() => void) | null = null
 
-// Lista de canais que o client se juntou. Reemitida em todo 'connect'
-// pra reconciliar com o server depois de reconnect (server perde state
-// quando socket cai → user parava de receber new_message até trocar
-// de canal manualmente).
+// Lista de canais + DMs que o client se juntou. Reemitida em todo
+// 'connect' pra reconciliar com o server depois de reconnect (server
+// perde state quando socket cai → user parava de receber new_message
+// até trocar de canal manualmente).
 const joinedChannels = new Set<string>()
+const joinedDMs      = new Set<string>()
 
 export function trackJoin(channelId: string) { joinedChannels.add(channelId) }
 export function trackLeave(channelId: string) { joinedChannels.delete(channelId) }
+export function trackJoinDM(conversationId: string) { joinedDMs.add(conversationId) }
+export function trackLeaveDM(conversationId: string) { joinedDMs.delete(conversationId) }
 
 function stopHeartbeat() {
   if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null }
@@ -48,6 +51,9 @@ export function connectSocket(): Socket {
     // até trocar de canal manualmente.
     for (const channelId of joinedChannels) {
       socket?.emit('join_channel', channelId)
+    }
+    for (const conversationId of joinedDMs) {
+      socket?.emit('join_dm', conversationId)
     }
   })
 
