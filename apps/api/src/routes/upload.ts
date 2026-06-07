@@ -3,6 +3,7 @@ import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
 import crypto from 'crypto'
+import sharp from 'sharp'
 import { requireAuth } from '../middleware/auth'
 import { asyncHandler } from '../lib/asyncHandler'
 
@@ -52,23 +53,60 @@ function isMimeAllowed(raw: string): boolean {
 const MAX_FILE_SIZE  = 25 * 1024 * 1024 // 25 MB
 const MAX_PER_REQUEST = 10
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
-  filename:    (_req, file, cb) => {
-    const ext = path.extname(file.originalname).slice(0, 16).toLowerCase().replace(/[^a-z0-9.]/g, '')
-    const id  = crypto.randomBytes(16).toString('hex')
-    cb(null, `${id}${ext}`)
-  },
-})
+// Memory storage pra imagens — vão passar pelo sharp antes de ir pro disco.
+// Não-imagens (vídeo, áudio, PDF) ainda vão direto pro disco via callback.
+const memoryStorage = multer.memoryStorage()
 
 const upload = multer({
-  storage,
+  storage: memoryStorage,
   limits: { fileSize: MAX_FILE_SIZE, files: MAX_PER_REQUEST },
   fileFilter: (_req, file, cb) => {
     if (!isMimeAllowed(file.mimetype)) return cb(new Error('TYPE_NOT_ALLOWED'))
     cb(null, true)
   },
 })
+
+/**
+ * Recompressa imagem em WebP. Reduz banda ~70% vs PNG/JPG sem perda visual
+ * relevante. Limita altura 2048 (smartphones modernos têm fotos 4032×3024
+ * = 12MP que viram 4MB+ JPG — desperdício pra avatar/banner/anexo chat).
+ *
+ * GIF e SVG: pula (animação/escalável preservadas).
+ */
+async function maybeTranscode(file: Express.Multer.File): Promise<{
+  buffer:  Buffer
+  mime:    string
+  ext:     string
+  width?:  number
+  height?: number
+}> {
+  const mime = file.mimetype.split(';')[0].toLowerCase()
+
+  // Não-imagem ou GIF/SVG: passa direto
+  if (!mime.startsWith('image/') || mime === 'image/gif' || mime === 'image/svg+xml') {
+    return { buffer: file.buffer, mime, ext: path.extname(file.originalname).toLowerCase() }
+  }
+
+  try {
+    const img = sharp(file.buffer, { failOn: 'none' })
+    const meta = await img.metadata()
+    const buffer = await img
+      .rotate()  // respeita EXIF orientation (foto retrato vira retrato)
+      .resize({ width: 2048, height: 2048, fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 82, effort: 4 })
+      .toBuffer()
+    return {
+      buffer,
+      mime:   'image/webp',
+      ext:    '.webp',
+      width:  meta.width,
+      height: meta.height,
+    }
+  } catch (e) {
+    console.warn('[upload] sharp falhou, fallback p/ original:', (e as Error).message)
+    return { buffer: file.buffer, mime, ext: path.extname(file.originalname).toLowerCase() }
+  }
+}
 
 const router = Router()
 
@@ -91,11 +129,20 @@ router.post(
     const files = (req.files as Express.Multer.File[] | undefined) ?? []
     if (files.length === 0) return res.status(400).json({ error: 'Nenhum arquivo enviado' })
 
-    const attachments = files.map((f) => ({
-      url:  `/uploads/${f.filename}`,
-      type: f.mimetype,
-      name: f.originalname,
-      size: f.size,
+    const attachments = await Promise.all(files.map(async (f) => {
+      const processed = await maybeTranscode(f)
+      const id = crypto.randomBytes(16).toString('hex')
+      const filename = `${id}${processed.ext}`
+      const destPath = path.join(UPLOAD_DIR, filename)
+      await fs.promises.writeFile(destPath, processed.buffer)
+      return {
+        url:    `/uploads/${filename}`,
+        type:   processed.mime,
+        name:   f.originalname,
+        size:   processed.buffer.length,
+        width:  processed.width,
+        height: processed.height,
+      }
     }))
     res.json({ data: { attachments } })
   })

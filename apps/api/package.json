@@ -18,8 +18,8 @@
     "vapid:gen": "web-push generate-vapid-keys --json"
   },
   "dependencies": {
-    "@sentry/node": "^10.55.0",
     "@astra/types": "*",
+    "@sentry/node": "^10.55.0",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
@@ -37,6 +37,7 @@
     "passport-google-oauth20": "^2.0.0",
     "pg": "^8.13.0",
     "prom-client": "^15.1.3",
+    "sharp": "^0.33.5",
     "socket.io": "^4.7.5",
     "web-push": "^3.6.7",
     "zod": "^3.23.8"
