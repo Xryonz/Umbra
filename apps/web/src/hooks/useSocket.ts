@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { getSocket, trackJoin, trackLeave } from '@/lib/socket'
 import type { MessageWithAuthor } from '@astra/types'
+import { probeEnd } from '@/lib/latencyProbe'
 
 interface ChannelHandlers {
   onNewMessage:  (msg: MessageWithAuthor) => void
@@ -33,7 +34,11 @@ export function useChannel(
     trackJoin(channelId)
     socket.emit('join_channel', channelId)
 
-    const onNew  = (msg: MessageWithAuthor) => ref.current.onNewMessage(msg)
+    const onNew  = (msg: MessageWithAuthor & { clientNonce?: string }) => {
+      // Mede round-trip se a msg é eco da minha própria (tem clientNonce que enviei).
+      probeEnd(msg.clientNonce)
+      ref.current.onNewMessage(msg)
+    }
     const onEdit = (p: any) => ref.current.onMessageEdited?.(p)
     const onDel  = (p: any) => ref.current.onMessageDeleted?.(p)
     const onPin  = (p: any) => ref.current.onMessagePinned?.(p)

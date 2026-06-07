@@ -18,6 +18,7 @@ const GifPicker       = lazy(() => import('@/components/chat/GifPicker'))
 const FullEmojiPicker = lazy(() => import('@/components/chat/FullEmojiPicker'))
 const PollComposer    = lazy(() => import('@/components/chat/PollComposer'))
 import { useAudioRecorder } from '@/hooks/useAudioRecorder'
+import { probeStart } from '@/lib/latencyProbe'
 import { RecordingDisplay } from '@/components/chat/RecordingDisplay'
 import { ComposerActionsMenu } from '@/components/chat/ComposerActionsMenu'
 
@@ -96,6 +97,7 @@ export default function MessageInput({
       replyTo: null,
     } as any
     onOptimisticMessage(optimisticMsg)
+    probeStart(optimisticId)
     try {
       await api.post(`/api/channels/${channelId}/messages`, {
         content: '', attachments: [att], clientNonce: optimisticId,
@@ -276,6 +278,7 @@ export default function MessageInput({
     } as any
     onOptimisticMessage(optimisticMsg)
     onCancelReply?.()
+    probeStart(optimisticId)
 
     try {
       await api.post(`/api/channels/${channelId}/messages`, {
