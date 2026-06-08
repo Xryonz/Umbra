@@ -8,6 +8,7 @@ import {
 } from '../db/schema'
 import { parseMentions } from '../lib/mentions'
 import { selectAuthorById, selectMemberColor } from '../db/prepared'
+import { getNotifModesFor } from './channelNotifPrefs'
 import { requireAuth } from '../middleware/auth'
 import { validate } from '../middleware/validate'
 import { messageLimiter } from '../middleware/rateLimiter'
@@ -337,18 +338,28 @@ export function createMessagesRouter(io: SocketServer) {
       setImmediate(() => {
         void (async () => {
           try {
-            // 1. Notifica sidebar de membros do server
+            // 1. Notifica sidebar de membros do server (channel_activity).
+            //    Lookup per-channel notif pref pra suprimir em 'mute' (e
+            //    em 'mentions' se o user não foi mencionado).
             const allMembers = await db.select({ userId: serverMembers.userId }).from(serverMembers)
               .where(eq(serverMembers.serverId, channel.serverId))
+            const memberIds = allMembers.map((m) => m.userId).filter((id) => id !== req.userId)
+            const notifModes = await getNotifModesFor(channelId, memberIds)
+            const mentionedSet = new Set(mentionedIds)
             const now = inserted.createdAt.toISOString()
-            for (const m of allMembers) {
-              if (m.userId === req.userId) continue
-              io.to(`user:${m.userId}`).emit('channel_activity', { channelId, lastMessageAt: now })
+            for (const userId of memberIds) {
+              const mode = notifModes.get(userId) ?? 'all'
+              if (mode === 'mute') continue
+              if (mode === 'mentions' && !mentionedSet.has(userId)) continue
+              io.to(`user:${userId}`).emit('channel_activity', { channelId, lastMessageAt: now })
             }
 
-            // 2. Mentions: legacy event + notify (feed + push)
+            // 2. Mentions: legacy event + notify (feed + push).
+            //    Suprime se user setou 'mute' explicitamente — 'mentions' aqui
+            //    deixa passar (justamente o caso pra menção).
             for (const userId of mentionedIds) {
               if (userId === req.userId) continue
+              if (notifModes.get(userId) === 'mute') continue
               io.to(`user:${userId}`).emit('mention', {
                 messageId:   inserted.id,
                 channelId,

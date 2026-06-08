@@ -19,6 +19,7 @@ import { useInAppNotifications } from '@/hooks/useInAppNotifications'
 import MessageList from '@/components/chat/MessageList'
 import MessageInput from '@/components/chat/MessageInput'
 import TypingIndicator from '@/components/chat/TypingIndicator'
+import ChannelNotifButton from '@/components/chat/ChannelNotifButton'
 import { ServerEmojiProvider } from '@/hooks/useServerEmojis'
 import MentionBanner from '@/components/chat/MentionBanner'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
@@ -138,6 +139,7 @@ function ChannelView() {
                 >
                   <Bookmark className="size-4" />
                 </button>
+                <ChannelNotifButton channelId={activeChannel.id} />
 
                 {/* Mobile: dropdown com Pin / Bookmark / Members */}
                 <DropdownMenu>

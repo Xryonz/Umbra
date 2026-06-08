@@ -286,6 +286,21 @@ export const channelReads = pgTable('ChannelRead', {
   byUser:          index('ChannelRead_userId_idx').on(t.userId),
 }))
 
+// ─── ChannelNotifPref ─────────────────────────────────────────
+// Preferência de notificação por canal: 'all' (todas msgs), 'mentions'
+// (só @me + replies), 'mute' (silencia tudo). Default = 'all' (sem row).
+// Lookup O(1) via uniqueIndex (userId, channelId).
+export const channelNotifPrefs = pgTable('ChannelNotifPref', {
+  id:        text('id').primaryKey().$defaultFn(createId),
+  userId:    text('userId').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  channelId: text('channelId').notNull().references(() => channels.id, { onDelete: 'cascade' }),
+  /** 'all' | 'mentions' | 'mute' */
+  mode:      text('mode').notNull().default('all'),
+  updatedAt: timestamp('updatedAt', { precision: 3 }).notNull().defaultNow().$onUpdate(() => new Date()),
+}, (t) => ({
+  uniqUserChannel: uniqueIndex('ChannelNotifPref_userId_channelId_key').on(t.userId, t.channelId),
+}))
+
 // ─── MessageEdit ──────────────────────────────────────────────
 // Histórico de edições. Cada vez que user edita uma msg, salva versão anterior.
 // Permite "ver histórico" no chat (tipo Slack).
