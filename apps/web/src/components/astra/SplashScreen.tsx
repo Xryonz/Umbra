@@ -4,32 +4,19 @@ import AstraLogo from '@/components/AstraLogo'
 /**
  * Splash mostrado durante bootstrapAuth() — antes do app montar.
  *
- * Sistema "Anéis de Saturno 3D": logo Astra ao centro + 3 anéis que
- * passam EM FRENTE e ATRÁS da logo, dando ilusão real de profundidade.
+ * Visual: logo Astra central + pinwheel de 6 linhas rotativas atrás
+ * (cataventro com delay incremental que cria efeito de hélice se
+ * torcendo). Logo cobre o centro do pinwheel, criando ilusão de
+ * raios emanando dela.
  *
- * Truque 3D sem JS: cada anel é DOIS elementos sobrepostos:
- *   - "back"  : clip-path inset(0 0 50% 0) — mostra só a metade
- *               visual de cima do anel; renderiza com z-index BAIXO
- *               (atrás da logo).
- *   - "front" : clip-path inset(50% 0 0 0) — mostra só a metade
- *               visual de baixo; renderiza com z-index ALTO (na
- *               frente da logo).
+ * Base do pinwheel: snippet do uiverse.io (Mikael Ainalem-style),
+ * adaptado pro tema Astra:
+ *   - Cor: var(--accent) prata
+ *   - Tamanho maior pra ocupar bem o splash
+ *   - Espessura linha + spacing pensados pra ficar legível em void
  *
- * Como o anel está tiltado em rotateX(~72°), a "metade superior raw"
- * do elemento fica no espaço Z negativo (atrás) e a "metade inferior
- * raw" no Z positivo (na frente). Combinado com a z-index manual,
- * o anel passa visualmente pela logo a cada giro — o efeito de
- * Saturno. Browser não precisa fazer z-sort 3D real.
- *
- * Ambos os elementos do mesmo anel rotacionam juntos (mesma keyframe,
- * mesmas vars CSS), então visualmente parece um único anel contínuo.
- *
- * Performance:
- *   - 1 propriedade animada por elemento (transform): 6 anims totais.
- *   - GPU compositor cuida; sem layout/paint no hot loop.
- *   - clip-path é mascaramento puro, custo trivial.
- *
- * Fade out controlado pelo parent via prop `visible`.
+ * Performance: 6 elementos × 1 keyframe transform = 6 anims compositor.
+ * Zero JS no loop. Respeita prefers-reduced-motion.
  */
 export default function SplashScreen({ visible = true }: { visible?: boolean }) {
   return (
@@ -45,119 +32,125 @@ export default function SplashScreen({ visible = true }: { visible?: boolean }) 
         flexDirection:  'column',
         alignItems:     'center',
         justifyContent: 'center',
-        gap:            '1.5rem',
+        gap:            '1.75rem',
         background:     'var(--void)',
         pointerEvents:  visible ? 'auto' : 'none',
       }}
     >
-      <div className="astra-saturn">
-        {/* Cada anel = par (back, front). Ordem DOM importa só pra back-side. */}
-        <div className="astra-ring astra-ring-a astra-ring-back" />
-        <div className="astra-ring astra-ring-b astra-ring-back" />
-        <div className="astra-ring astra-ring-c astra-ring-back" />
+      <div className="astra-splash-stage">
+        {/* Pinwheel atrás — 6 linhas horizontais com delay incremental.
+            Cada uma rota 0→180deg ease-in-out, criando torção em hélice. */}
+        <div className="astra-pinwheel">
+          <span className="astra-pinwheel__line" />
+          <span className="astra-pinwheel__line" />
+          <span className="astra-pinwheel__line" />
+          <span className="astra-pinwheel__line" />
+          <span className="astra-pinwheel__line" />
+          <span className="astra-pinwheel__line" />
+        </div>
 
-        <div className="astra-saturn-core">
+        {/* Logo na frente — fundo void redondo cobre as linhas que passariam
+            pelo centro, criando ilusão de "raios emanando" da logo. */}
+        <div className="astra-splash-core">
           <AstraLogo size={64} animated />
         </div>
 
-        <div className="astra-ring astra-ring-a astra-ring-front" />
-        <div className="astra-ring astra-ring-b astra-ring-front" />
-        <div className="astra-ring astra-ring-c astra-ring-front" />
+        {/* Glow ambiente — soft halo prata por baixo de tudo, dá profundidade. */}
+        <div className="astra-splash-halo" aria-hidden />
       </div>
 
       <p style={{
         color:         'var(--text-3)',
         fontSize:      '0.75rem',
         fontFamily:    'var(--font-mono)',
-        letterSpacing: '0.1em',
+        letterSpacing: '0.18em',
         margin:        0,
       }}>
         ASTRA
       </p>
 
       <style>{`
-        .astra-saturn {
+        .astra-splash-stage {
           position:        relative;
-          width:           220px;
-          height:          220px;
-          perspective:     1000px;
-          transform-style: preserve-3d;
-        }
-        .astra-saturn-core {
-          position:  absolute;
-          top:       50%;
-          left:      50%;
-          transform: translate(-50%, -50%);
-          z-index:   5;
+          width:           180px;
+          height:          180px;
+          display:         flex;
+          align-items:     center;
+          justify-content: center;
         }
 
-        /* Anel base: posicionado via top/left 50% + margin negativa
-           (não usa translate no transform pois ele é puramente animado). */
-        .astra-ring {
+        /* ── Pinwheel ──────────────────────────────────────────── */
+        .astra-pinwheel {
+          --uib-size:        180px;
+          --uib-speed:       0.95s;
+          --uib-color:       var(--accent);
+          --uib-line-weight: 4px;
+
+          position:        absolute;
+          inset:           0;
+          display:         flex;
+          align-items:     center;
+          justify-content: center;
+          z-index:         1;
+        }
+        .astra-pinwheel__line {
           position:      absolute;
-          top:           50%;
-          left:          50%;
-          border-radius: 50%;
-          pointer-events: none;
-          /* Iluminação assimétrica: top brilhante (sol), bottom sombra.
-             O ponto brilhante gira junto com o anel (border é solidário). */
-          border-top:    2px   solid var(--accent);
-          border-bottom: 1px   solid color-mix(in srgb, var(--accent) 25%, transparent);
-          border-left:   1.5px solid color-mix(in srgb, var(--accent) 65%, transparent);
-          border-right:  1.5px solid color-mix(in srgb, var(--accent) 65%, transparent);
-          box-shadow:    0 0 10px color-mix(in srgb, var(--accent) 18%, transparent);
-          animation:     saturnSpin var(--dur, 8s) linear infinite var(--dir, normal);
+          top:           calc(50% - var(--uib-line-weight) / 2);
+          left:          0;
+          height:        var(--uib-line-weight);
+          width:         100%;
+          border-radius: calc(var(--uib-line-weight) / 2);
+          background:    var(--uib-color);
+          box-shadow:    0 0 8px color-mix(in srgb, var(--uib-color) 35%, transparent);
+          animation:     astraPinwheelRot var(--uib-speed) ease-in-out infinite;
           will-change:   transform;
         }
+        .astra-pinwheel__line:nth-child(2) { animation-delay: calc(var(--uib-speed) * 0.075); opacity: 0.85; }
+        .astra-pinwheel__line:nth-child(3) { animation-delay: calc(var(--uib-speed) * 0.15);  opacity: 0.68; }
+        .astra-pinwheel__line:nth-child(4) { animation-delay: calc(var(--uib-speed) * 0.225); opacity: 0.50; }
+        .astra-pinwheel__line:nth-child(5) { animation-delay: calc(var(--uib-speed) * 0.30);  opacity: 0.32; }
+        .astra-pinwheel__line:nth-child(6) { animation-delay: calc(var(--uib-speed) * 0.375); opacity: 0.18; }
 
-        /* Back: metade visual de cima do anel — fica atrás da logo. */
-        .astra-ring-back {
-          z-index:   1;
-          clip-path: inset(0 0 50% 0);
-        }
-        /* Front: metade visual de baixo — fica na frente da logo. */
-        .astra-ring-front {
-          z-index:   10;
-          clip-path: inset(50% 0 0 0);
-        }
-
-        /* 3 anéis em raios crescentes + planos 3D distintos. */
-        .astra-ring-a {
-          width:  120px;
-          height: 120px;
-          margin: -60px 0 0 -60px;
-          --tx:   72deg;
-          --ty:   -8deg;
-          --dur:  6s;
-        }
-        .astra-ring-b {
-          width:  155px;
-          height: 155px;
-          margin: -77.5px 0 0 -77.5px;
-          --tx:   68deg;
-          --ty:   12deg;
-          --dur:  9s;
-          --dir:  reverse;
-          border-top-width: 1.5px;
-        }
-        .astra-ring-c {
-          width:  190px;
-          height: 190px;
-          margin: -95px 0 0 -95px;
-          --tx:   74deg;
-          --ty:   -4deg;
-          --dur:  13s;
-          border-top-width: 1px;
-          opacity: 0.75;
+        @keyframes astraPinwheelRot {
+          0%   { transform: rotate(0deg);   }
+          100% { transform: rotate(180deg); }
         }
 
-        @keyframes saturnSpin {
-          from { transform: rotateX(var(--tx)) rotateY(var(--ty)) rotateZ(0deg);   }
-          to   { transform: rotateX(var(--tx)) rotateY(var(--ty)) rotateZ(360deg); }
+        /* ── Core: logo no centro ──────────────────────────────── */
+        .astra-splash-core {
+          position:      relative;
+          z-index:       5;
+          width:         92px;
+          height:        92px;
+          border-radius: 50%;
+          background:    radial-gradient(
+            circle at center,
+            var(--void) 0%,
+            var(--void) 55%,
+            color-mix(in srgb, var(--void) 90%, transparent) 75%,
+            transparent 100%
+          );
+          display:       flex;
+          align-items:   center;
+          justify-content: center;
+        }
+
+        /* ── Halo ambiente: glow soft fixo atrás de tudo ───────── */
+        .astra-splash-halo {
+          position:      absolute;
+          inset:         -20%;
+          z-index:       0;
+          pointer-events: none;
+          background:    radial-gradient(
+            circle at center,
+            color-mix(in srgb, var(--accent) 12%, transparent) 0%,
+            transparent 60%
+          );
+          filter:        blur(8px);
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .astra-ring { animation: none !important; }
+          .astra-pinwheel__line { animation: none; }
         }
       `}</style>
     </motion.div>
