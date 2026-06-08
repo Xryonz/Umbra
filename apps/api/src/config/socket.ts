@@ -2,12 +2,14 @@ import { Server, Socket } from 'socket.io'
 import { randomUUID } from 'node:crypto'
 import { and, eq, or } from 'drizzle-orm'
 import { db } from '../db'
-import { users, dmConversations } from '../db/schema'
+import { users, dmConversations, channels, messages, serverMembers } from '../db/schema'
 import { verifyAccessToken } from '../lib/jwt'
 import { isTokenBlacklisted, setUserOnline, setUserOffline, refreshPresence } from '../lib/redis'
 import { trackMessage, isUserMuted, muteUser, getMuteExpiry } from '../lib/spamDetector'
 import { getBotId, askBot, handleBotCommand } from '../lib/bot'
-import { socketConnections, socketEventsTotal } from '../lib/metrics'
+import { socketConnections, socketEventsTotal, messagesSentTotal } from '../lib/metrics'
+import { parseMentions } from '../lib/mentions'
+import { selectAuthorById, selectMemberColor } from '../db/prepared'
 
 const userSockets = new Map<string, Set<string>>()
 
@@ -229,6 +231,112 @@ export function setupSocket(io: Server) {
       }
 
       socket.emit('message_allowed', { channelId })
+    })
+
+    // ── Fast send (texto simples, sem anexo/reply/TTL/poll) ───
+    // Pula HTTP handshake do POST: cliente emite via socket persistente.
+    // Pra casos complexos (anexos, reply, poll, TTL) continua HTTP em
+    // /api/channels/:id/messages. Cobre ~80% dos sends.
+    //
+    // Contrato:
+    //   in:  { channelId, content, clientNonce }
+    //   ack: { ok: true, msg } | { ok: false, error, code? }
+    //   Broadcast: io.to(`channel:${channelId}`).emit('new_message', msg)
+    socket.on('fast_send_text', async (
+      payload: { channelId: string; content: string; clientNonce?: string },
+      ack?: (r: { ok: boolean; error?: string; code?: string; msg?: unknown }) => void,
+    ) => {
+      const safeAck = typeof ack === 'function' ? ack : () => {}
+      try {
+        const { channelId, content, clientNonce } = payload ?? {}
+        if (typeof channelId !== 'string' || typeof content !== 'string') {
+          return safeAck({ ok: false, error: 'Payload inválido' })
+        }
+        const trimmed = content.trim()
+        if (trimmed.length === 0 || trimmed.length > 4000) {
+          return safeAck({ ok: false, error: 'Conteúdo inválido' })
+        }
+
+        // 1. Membership + canal acessível
+        const [ch] = await db.select({ id: channels.id, serverId: channels.serverId })
+          .from(channels).where(eq(channels.id, channelId)).limit(1)
+        if (!ch) return safeAck({ ok: false, error: 'Canal não encontrado' })
+        const canAccess = await userCanAccessChannel(userId, channelId)
+        if (!canAccess) return safeAck({ ok: false, error: 'Acesso negado' })
+
+        // 2. Mute check
+        const muted = await isUserMuted(userId, ch.serverId)
+        if (muted) {
+          const secondsLeft = await getMuteExpiry(userId, ch.serverId)
+          return safeAck({ ok: false, error: 'Silenciado', code: 'MUTED', ...{ secondsLeft } } as any)
+        }
+
+        // 3. Spam check
+        const { spamDetected } = await trackMessage(userId, channelId)
+        if (spamDetected) {
+          const botId = await getBotId()
+          if (botId) await muteUser(userId, ch.serverId, botId)
+          return safeAck({ ok: false, error: 'Spam detectado', code: 'SPAM_MUTED' })
+        }
+
+        // 4. Paralelo: membership color + mentions + author lookup
+        const [membership, mentionedIds, author] = await Promise.all([
+          selectMemberColor.execute({ userId, serverId: ch.serverId }).then((rows) => rows[0]),
+          parseMentions(trimmed, ch.serverId),
+          selectAuthorById.execute({ userId }).then((rows) => rows[0]),
+        ])
+
+        // 5. INSERT
+        const [inserted] = await db.insert(messages).values({
+          content:     trimmed,
+          channelId,
+          authorId:    userId,
+          authorColor: membership?.nameColor ?? null,
+          mentions:    mentionedIds.join(','),
+          attachments: '[]',
+        }).returning()
+
+        const payload2 = {
+          ...inserted,
+          author,
+          reactions:   [],
+          mentions:    mentionedIds,
+          attachments: [],
+          replyTo:     null,
+          clientNonce: clientNonce ?? null,
+        }
+
+        // 6. Broadcast + ack
+        io.to(`channel:${channelId}`).emit('new_message', payload2)
+        messagesSentTotal.inc({ kind: 'channel' })
+        safeAck({ ok: true, msg: payload2 })
+
+        // 7. Background: notif mentions + channel_activity
+        setImmediate(() => {
+          void (async () => {
+            try {
+              const allMembers = await db.select({ userId: serverMembers.userId })
+                .from(serverMembers).where(eq(serverMembers.serverId, ch.serverId))
+              const now = (inserted.createdAt instanceof Date ? inserted.createdAt : new Date()).toISOString()
+              for (const m of allMembers) {
+                if (m.userId === userId) continue
+                io.to(`user:${m.userId}`).emit('channel_activity', { channelId, lastMessageAt: now })
+              }
+              for (const targetId of mentionedIds) {
+                if (targetId === userId) continue
+                io.to(`user:${targetId}`).emit('mention', {
+                  channelId, messageId: inserted.id, from: socket.data.username,
+                })
+              }
+            } catch (e) {
+              console.error('[fast_send_text/background]', e)
+            }
+          })()
+        })
+      } catch (e) {
+        console.error('[fast_send_text]', e)
+        safeAck({ ok: false, error: 'Erro interno' })
+      }
     })
 
     // ── Bot command ───────────────────────────────────────────

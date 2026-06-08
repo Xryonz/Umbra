@@ -6,7 +6,7 @@ import { alias } from 'drizzle-orm/pg-core'
 import {
   channels, servers, serverMembers, messages, users, messageReactions, messageEdits,
 } from '../db/schema'
-import { getCachedMembers } from '../lib/membersCache'
+import { parseMentions } from '../lib/mentions'
 import { selectAuthorById, selectMemberColor } from '../db/prepared'
 import { requireAuth } from '../middleware/auth'
 import { validate } from '../middleware/validate'
@@ -46,21 +46,6 @@ function parseCursor(cursor?: string): CursorPayload | null {
   }
 }
 
-/**
- * Parse @mentions: retorna userIds dos mencionados que de fato
- * são membros do servidor (não vaza o ato de mencionar fora dele).
- * Usa cache Redis compartilhado (lib/membersCache).
- */
-async function parseMentions(content: string, serverId: string): Promise<string[]> {
-  const matches = content.match(/@([a-z0-9_]+)/gi)
-  if (!matches || matches.length === 0) return []
-
-  const wanted = new Set(matches.map((m) => m.slice(1).toLowerCase()))
-  const members = await getCachedMembers(serverId)
-  return members
-    .filter((m) => wanted.has(m.username.toLowerCase()))
-    .map((m) => m.userId)
-}
 
 function safeParseAttachments(raw: unknown): any[] {
   if (!raw || typeof raw !== 'string') return []

@@ -17,6 +17,41 @@ export function trackLeave(channelId: string) { joinedChannels.delete(channelId)
 export function trackJoinDM(conversationId: string) { joinedDMs.add(conversationId) }
 export function trackLeaveDM(conversationId: string) { joinedDMs.delete(conversationId) }
 
+/**
+ * Fast-path de envio: emite 'fast_send_text' direto pelo socket persistente
+ * (evita HTTP handshake do POST). Server faz validação, INSERT, broadcast.
+ * Timeout 5s pra evitar promise pendurada — fallback fica com caller.
+ *
+ * Retorno: { ok, error?, code?, msg? }
+ *   - ok=true:  servidor processou e broadcast já saiu; msg vem com IDs reais
+ *   - ok=false: erro de validação/mute/spam/rede; caller deve cair pra POST
+ */
+export interface FastSendResult { ok: boolean; error?: string; code?: string; msg?: unknown }
+
+export function fastSendText(
+  channelId: string, content: string, clientNonce: string, timeoutMs = 5000,
+): Promise<FastSendResult> {
+  return new Promise((resolve) => {
+    let s: Socket
+    try { s = getSocket() } catch { return resolve({ ok: false, error: 'NO_SOCKET' }) }
+    if (!s.connected)   return resolve({ ok: false, error: 'DISCONNECTED' })
+
+    let done = false
+    const timer = setTimeout(() => {
+      if (done) return
+      done = true
+      resolve({ ok: false, error: 'TIMEOUT' })
+    }, timeoutMs)
+
+    s.emit('fast_send_text', { channelId, content, clientNonce }, (r: FastSendResult) => {
+      if (done) return
+      done = true
+      clearTimeout(timer)
+      resolve(r ?? { ok: false, error: 'NO_ACK' })
+    })
+  })
+}
+
 function stopHeartbeat() {
   if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null }
 }

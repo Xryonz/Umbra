@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ArrowRight, VolumeX, X, CornerDownRight, Paperclip, File as FileIcon, Mic, Square, Play } from 'lucide-react'
 import { motion } from 'motion/react'
 import { api, resolveApiUrl } from '@/lib/api'
-import { getSocket } from '@/lib/socket'
+import { getSocket, fastSendText } from '@/lib/socket'
 import { useTyping } from '@/hooks/useSocket'
 import { applySlashCommand } from '@/lib/slashCommands'
 import { parseReminderCommand } from '@/lib/reminderCommand'
@@ -280,6 +280,20 @@ export default function MessageInput({
     onCancelReply?.()
     probeStart(optimisticId)
 
+    // FAST PATH: texto puro, sem anexos/reply/TTL → socket direto
+    // (poupa ~30-50ms do handshake HTTP). Casos complexos caem no POST.
+    const canFastSend =
+      attachmentsToSend.length === 0 &&
+      !replyToSnapshot &&
+      (!ttlSeconds || ttlSeconds <= 0)
+
+    if (canFastSend) {
+      const r = await fastSendText(channelId, trimmed, optimisticId)
+      if (r.ok) return
+      // Fast path falhou (timeout/disconnect/erro) → cai pro HTTP abaixo.
+      // Mantém optimistic visível; HTTP completa ou marca como failed.
+    }
+
     try {
       await api.post(`/api/channels/${channelId}/messages`, {
         content:     trimmed,
@@ -295,7 +309,7 @@ export default function MessageInput({
         setAttachments(attachmentsToSend)
       }
     }
-  }, [content, attachments, muted, user, channelId, serverId, replyingTo, onCancelReply, onOptimisticMessage, onOptimisticFailed, stopTyping])
+  }, [content, attachments, muted, user, channelId, serverId, replyingTo, ttlSeconds, onCancelReply, onOptimisticMessage, onOptimisticFailed, stopTyping])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (mentionQuery !== null && suggestions.length > 0) {
