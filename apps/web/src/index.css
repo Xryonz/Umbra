@@ -55,6 +55,38 @@
   --ease-out-snappy:  cubic-bezier(0.5, 1.6, 0.45, 1);  /* overshoot leve, micro UI */
 
   --radius: 0.625rem;
+
+  /* Font size global — user override via data-font-size em <html>.
+     html base 16px (default browser); --font-base aplicado por classe.
+     Tailwind v4 já calcula rems com base no html → mudar isso escala
+     TUDO automaticamente (text-sm, text-base, gap-2 etc). */
+  --font-base: 16px;
+
+  /* Density — espaçamento vertical das mensagens. Aplicado em MessageItem
+     via padding-y; data-density="compact" reduz pra apertar histórico. */
+  --msg-density-py: 0.5rem;
+}
+
+html {
+  font-size: var(--font-base);
+}
+[data-font-size="sm"]      { --font-base: 14px; }
+[data-font-size="md"]      { --font-base: 16px; }
+[data-font-size="lg"]      { --font-base: 17px; }
+[data-font-size="xl"]      { --font-base: 19px; }
+
+[data-density="compact"]      { --msg-density-py: 0.2rem; }
+[data-density="comfortable"]  { --msg-density-py: 0.5rem; }
+[data-density="spacious"]     { --msg-density-py: 0.85rem; }
+
+/* User-opt-in reduced motion (independente do prefers OS). */
+[data-reduced-motion] *,
+[data-reduced-motion] *::before,
+[data-reduced-motion] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
 }
 
 /* Light mode dropped — Astra é dark-only por design (editorial-dark é a brand) */

@@ -653,11 +653,17 @@ function MessageItemImpl({
       <div
         className={cn(
           'flex gap-4 relative transition-all duration-300 ease-(--ease-spring) border-l-2 select-none md:select-auto',
-          grouped ? 'pl-4 pr-3 py-0.5' : 'pl-4 pr-3 pt-3 pb-1 mt-2',
+          // py-(--msg-density-py) respeita data-density do <html>
+          // (compact 0.2rem / comfortable 0.5rem / spacious 0.85rem).
+          grouped ? 'pl-4 pr-3' : 'pl-4 pr-3 pt-3 pb-1 mt-2',
           hovered ? 'border-(--accent) bg-(--raised)/40' : 'border-transparent bg-transparent',
           isPending ? 'opacity-60' : 'opacity-100'
         )}
-        style={{ animation: `msgIn 0.22s var(--ease-spring) ${delay}s both` }}
+        style={{
+          animation: `msgIn 0.22s var(--ease-spring) ${delay}s both`,
+          paddingTop:    grouped ? 'var(--msg-density-py)' : undefined,
+          paddingBottom: grouped ? 'var(--msg-density-py)' : undefined,
+        }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => { setHovered(false); setShowEmoji(false) }}
         onTouchStart={longPress.onTouchStart}

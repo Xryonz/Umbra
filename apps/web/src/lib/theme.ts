@@ -61,9 +61,68 @@ export function applyTheme(accentId: string, bgId: string) {
   localStorage.setItem('astra-bg',     bgId)
 }
 
+// ── Presets temáticos (accent + bg combo) ─────────────────────
+// Identidades pré-pensadas pra user trocar de "skin" inteira num
+// clique, sem mexer em accent/bg individualmente.
+export const THEME_PRESETS = [
+  { id: 'obsidian', label: 'Obsidiana',  hint: 'Prata fria + void',     accent: 'white',   bg: 'void'        },
+  { id: 'solar',    label: 'Solar',      hint: 'Âmbar editorial',       accent: 'gold',    bg: 'void'        },
+  { id: 'nebula',   label: 'Nebulosa',   hint: 'Violeta cósmica',       accent: 'violet',  bg: 'navy'        },
+  { id: 'aurora',   label: 'Aurora',     hint: 'Ciano + floresta',      accent: 'teal',    bg: 'forest'      },
+  { id: 'eclipse',  label: 'Eclipse',    hint: 'Carmim sobre vinho',    accent: 'crimson', bg: 'wine'        },
+  { id: 'meridian', label: 'Meridiano',  hint: 'Esmeralda + carvão',    accent: 'emerald', bg: 'dark'       },
+  { id: 'amoled',   label: 'AMOLED',     hint: 'Branco em preto puro',  accent: 'white',   bg: 'pure-black' },
+] as const
+
+export function applyPreset(presetId: string): void {
+  const p = THEME_PRESETS.find((x) => x.id === presetId) ?? THEME_PRESETS[0]
+  applyTheme(p.accent, p.bg)
+  localStorage.setItem('astra-preset', p.id)
+}
+
+// ── Font size global ──────────────────────────────────────────
+// Aplica via data-font-size em <html>. Tailwind v4 escala junto
+// porque suas unidades em rem derivam de html font-size.
+export const FONT_SIZE_OPTIONS = [
+  { id: 'sm', label: 'Pequena' },
+  { id: 'md', label: 'Padrão'  },
+  { id: 'lg', label: 'Grande'  },
+  { id: 'xl', label: 'Maior'   },
+] as const
+export type FontSize = typeof FONT_SIZE_OPTIONS[number]['id']
+
+export function applyFontSize(id: FontSize): void {
+  document.documentElement.setAttribute('data-font-size', id)
+  localStorage.setItem('astra-font-size', id)
+}
+
+// ── Density (espaçamento mensagens) ───────────────────────────
+export const DENSITY_OPTIONS = [
+  { id: 'compact',     label: 'Compacta'    },
+  { id: 'comfortable', label: 'Confortável' },
+  { id: 'spacious',    label: 'Espaçosa'    },
+] as const
+export type Density = typeof DENSITY_OPTIONS[number]['id']
+
+export function applyDensity(id: Density): void {
+  document.documentElement.setAttribute('data-density', id)
+  localStorage.setItem('astra-density', id)
+}
+
+// ── Reduced motion (opt-in user) ──────────────────────────────
+// Browser tem prefers-reduced-motion mas alguns users querem ligar
+// manualmente sem mexer em config OS.
+export function applyMotion(reduced: boolean): void {
+  document.documentElement.toggleAttribute('data-reduced-motion', reduced)
+  localStorage.setItem('astra-motion-reduced', reduced ? '1' : '0')
+}
+
 export function restoreTheme() {
   applyTheme(
-    localStorage.getItem('astra-accent') ?? 'gold',
+    localStorage.getItem('astra-accent') ?? 'white',
     localStorage.getItem('astra-bg')     ?? 'void',
   )
+  applyFontSize((localStorage.getItem('astra-font-size') as FontSize) ?? 'md')
+  applyDensity((localStorage.getItem('astra-density')   as Density)  ?? 'comfortable')
+  if (localStorage.getItem('astra-motion-reduced') === '1') applyMotion(true)
 }
