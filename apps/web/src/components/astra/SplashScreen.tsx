@@ -4,21 +4,30 @@ import AstraLogo from '@/components/AstraLogo'
 /**
  * Splash mostrado durante bootstrapAuth() — antes do app montar.
  *
- * Sistema "Anéis de Saturno": logo Astra central + 3 anéis elípticos
- * em planos 3D distintos, com iluminação assimétrica (border-top
- * brilhante, border-bottom apagado) que simula luz solar lateral —
- * dá ilusão de profundidade sem rasterizar nada.
+ * Sistema "Anéis de Saturno 3D": logo Astra ao centro + 3 anéis que
+ * passam EM FRENTE e ATRÁS da logo, dando ilusão real de profundidade.
+ *
+ * Truque 3D sem JS: cada anel é DOIS elementos sobrepostos:
+ *   - "back"  : clip-path inset(0 0 50% 0) — mostra só a metade
+ *               visual de cima do anel; renderiza com z-index BAIXO
+ *               (atrás da logo).
+ *   - "front" : clip-path inset(50% 0 0 0) — mostra só a metade
+ *               visual de baixo; renderiza com z-index ALTO (na
+ *               frente da logo).
+ *
+ * Como o anel está tiltado em rotateX(~72°), a "metade superior raw"
+ * do elemento fica no espaço Z negativo (atrás) e a "metade inferior
+ * raw" no Z positivo (na frente). Combinado com a z-index manual,
+ * o anel passa visualmente pela logo a cada giro — o efeito de
+ * Saturno. Browser não precisa fazer z-sort 3D real.
+ *
+ * Ambos os elementos do mesmo anel rotacionam juntos (mesma keyframe,
+ * mesmas vars CSS), então visualmente parece um único anel contínuo.
  *
  * Performance:
- *   - 100% CSS keyframes — 1 propriedade animada por anel (transform).
- *   - 3 anéis = 3 elementos no compositor. Zero JS no loop.
- *   - perspective no container ativa 3D layer, deixando GPU cuidar.
- *
- * Cada anel:
- *   - rotateX 68-74deg: incline grande pra mostrar a "elipse"
- *   - rotateY ±8-12deg: inclina o plano (não exatamente paralelo)
- *   - rotateZ 0→360 infinito: o spin propriamente dito
- *   - direção alternada (interna→externa) pra evitar movimento monótono
+ *   - 1 propriedade animada por elemento (transform): 6 anims totais.
+ *   - GPU compositor cuida; sem layout/paint no hot loop.
+ *   - clip-path é mascaramento puro, custo trivial.
  *
  * Fade out controlado pelo parent via prop `visible`.
  */
@@ -42,13 +51,18 @@ export default function SplashScreen({ visible = true }: { visible?: boolean }) 
       }}
     >
       <div className="astra-saturn">
+        {/* Cada anel = par (back, front). Ordem DOM importa só pra back-side. */}
+        <div className="astra-ring astra-ring-a astra-ring-back" />
+        <div className="astra-ring astra-ring-b astra-ring-back" />
+        <div className="astra-ring astra-ring-c astra-ring-back" />
+
         <div className="astra-saturn-core">
           <AstraLogo size={64} animated />
         </div>
 
-        <div className="astra-ring astra-ring-a" />
-        <div className="astra-ring astra-ring-b" />
-        <div className="astra-ring astra-ring-c" />
+        <div className="astra-ring astra-ring-a astra-ring-front" />
+        <div className="astra-ring astra-ring-b astra-ring-front" />
+        <div className="astra-ring astra-ring-c astra-ring-front" />
       </div>
 
       <p style={{
@@ -64,9 +78,9 @@ export default function SplashScreen({ visible = true }: { visible?: boolean }) 
       <style>{`
         .astra-saturn {
           position:        relative;
-          width:           200px;
-          height:          200px;
-          perspective:     900px;
+          width:           220px;
+          height:          220px;
+          perspective:     1000px;
           transform-style: preserve-3d;
         }
         .astra-saturn-core {
@@ -77,17 +91,16 @@ export default function SplashScreen({ visible = true }: { visible?: boolean }) 
           z-index:   5;
         }
 
-        /* Anéis: posicionados via top/left 50% + translate dentro do
-           keyframe (o translate vive no transform, então tem que estar
-           na keyframe junto com rotateX/Y/Z). */
+        /* Anel base: posicionado via top/left 50% + margin negativa
+           (não usa translate no transform pois ele é puramente animado). */
         .astra-ring {
           position:      absolute;
           top:           50%;
           left:          50%;
           border-radius: 50%;
           pointer-events: none;
-          /* Iluminação assimétrica: top brilhante = lado iluminado.
-             Bottom apagado = sombra. Cria sensação de luz lateral. */
+          /* Iluminação assimétrica: top brilhante (sol), bottom sombra.
+             O ponto brilhante gira junto com o anel (border é solidário). */
           border-top:    2px   solid var(--accent);
           border-bottom: 1px   solid color-mix(in srgb, var(--accent) 25%, transparent);
           border-left:   1.5px solid color-mix(in srgb, var(--accent) 65%, transparent);
@@ -97,35 +110,45 @@ export default function SplashScreen({ visible = true }: { visible?: boolean }) 
           will-change:   transform;
         }
 
-        /* 3 anéis em raios crescentes + planos 3D distintos.
-           Direções alternam (a normal, b reverse, c normal). */
+        /* Back: metade visual de cima do anel — fica atrás da logo. */
+        .astra-ring-back {
+          z-index:   1;
+          clip-path: inset(0 0 50% 0);
+        }
+        /* Front: metade visual de baixo — fica na frente da logo. */
+        .astra-ring-front {
+          z-index:   10;
+          clip-path: inset(50% 0 0 0);
+        }
+
+        /* 3 anéis em raios crescentes + planos 3D distintos. */
         .astra-ring-a {
-          width:  115px;
-          height: 115px;
-          margin: -57.5px 0 0 -57.5px;
+          width:  120px;
+          height: 120px;
+          margin: -60px 0 0 -60px;
           --tx:   72deg;
           --ty:   -8deg;
-          --dur:  5.5s;
+          --dur:  6s;
         }
         .astra-ring-b {
-          width:  150px;
-          height: 150px;
-          margin: -75px 0 0 -75px;
+          width:  155px;
+          height: 155px;
+          margin: -77.5px 0 0 -77.5px;
           --tx:   68deg;
           --ty:   12deg;
-          --dur:  8.5s;
+          --dur:  9s;
           --dir:  reverse;
           border-top-width: 1.5px;
         }
         .astra-ring-c {
-          width:  185px;
-          height: 185px;
-          margin: -92.5px 0 0 -92.5px;
+          width:  190px;
+          height: 190px;
+          margin: -95px 0 0 -95px;
           --tx:   74deg;
           --ty:   -4deg;
           --dur:  13s;
           border-top-width: 1px;
-          opacity: 0.7;
+          opacity: 0.75;
         }
 
         @keyframes saturnSpin {
