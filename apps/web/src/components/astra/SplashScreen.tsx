@@ -1,34 +1,20 @@
 import { useEffect } from 'react'
 import { motion } from 'motion/react'
+import AstraLogo from '@/components/AstraLogo'
 import { isNative } from '@/lib/native'
 
 /**
- * Splash de entrada — handoff seamless do splash nativo (Capacitor).
+ * Splash mostrado durante bootstrapAuth() — antes do app montar.
  *
- * No app: o Android mostra o logo estático (splash nativo) → este componente
- * monta com o MESMO logo na mesma região e esconde o nativo → o logo "ganha
- * vida" (glow respira, estrelas acendem) → crossfade pro app. Percepção:
- * uma animação contínua desde o toque no ícone, estilo Discord.
+ * Logo Astra ao centro + 3 dots orbitando ao redor (sugerindo
+ * carregamento + estabelecendo identidade astral).
  *
- * No web: mesma animação, sem o handoff.
- * Transform/opacity only — compositor-friendly em qualquer GPU.
+ * No app nativo: esconde o splash do Capacitor ao montar (handoff).
+ * Fade out controlado pelo parent via prop `visible`.
  */
-
-// Estrelas decorativas ao redor do logo (posições fixas, determinísticas)
-const SPARKS = [
-  { x: -110, y: -70,  size: 3, delay: 0.15 },
-  { x:  95,  y: -95,  size: 2, delay: 0.30 },
-  { x:  130, y: -10,  size: 2, delay: 0.45 },
-  { x: -140, y:  30,  size: 2, delay: 0.55 },
-  { x:  70,  y:  90,  size: 3, delay: 0.40 },
-  { x: -60,  y:  115, size: 2, delay: 0.65 },
-  { x:  10,  y: -135, size: 2, delay: 0.25 },
-  { x:  150, y:  70,  size: 2, delay: 0.70 },
-]
-
 export default function SplashScreen({ visible = true }: { visible?: boolean }) {
-  // Esconde o splash nativo assim que o web está pronto pra assumir.
-  // fadeOut curto: o frame seguinte já é visualmente idêntico.
+  // Esconde o splash nativo assim que o web está pronto pra assumir
+  // (launchAutoHide: false no capacitor.config — fallback de 4s em native.ts).
   useEffect(() => {
     if (!isNative) return
     void import('@capacitor/splash-screen')
@@ -40,7 +26,7 @@ export default function SplashScreen({ visible = true }: { visible?: boolean }) 
     <motion.div
       initial={{ opacity: 1 }}
       animate={{ opacity: visible ? 1 : 0 }}
-      transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
+      transition={{ duration: 0.4 }}
       style={{
         position:       'fixed',
         inset:          0,
@@ -49,77 +35,77 @@ export default function SplashScreen({ visible = true }: { visible?: boolean }) 
         flexDirection:  'column',
         alignItems:     'center',
         justifyContent: 'center',
-        gap:            '1.75rem',
+        gap:            '1.5rem',
         background:     'var(--void)',
         pointerEvents:  visible ? 'auto' : 'none',
       }}
     >
-      <div style={{ position: 'relative', width: 140, height: 140, display: 'grid', placeItems: 'center' }}>
-        {/* Glow respirando atrás do logo */}
-        <motion.div
-          aria-hidden
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: [0, 0.55, 0.3, 0.55], scale: [0.8, 1.05, 0.95, 1.05] }}
-          transition={{ duration: 2.8, times: [0, 0.35, 0.7, 1], repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
-          style={{
-            position:     'absolute',
-            inset:        -30,
-            borderRadius: '50%',
-            background:   'radial-gradient(circle, var(--accent-glow) 0%, transparent 65%)',
-          }}
-        />
+      <div style={{ position: 'relative', width: 120, height: 120 }}>
+        <div style={{
+          position:       'absolute',
+          inset:          0,
+          display:        'flex',
+          alignItems:     'center',
+          justifyContent: 'center',
+        }}>
+          <AstraLogo size={64} animated />
+        </div>
 
-        {/* Logo — mesma arte do splash nativo (handoff invisível) */}
-        <motion.img
-          src="/favicon.svg"
-          alt=""
-          width={112}
-          height={112}
-          draggable={false}
-          initial={{ scale: 1, opacity: 1 }}
-          animate={{ scale: [1, 1.04, 1] }}
-          transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-          style={{ position: 'relative', userSelect: 'none' }}
-        />
+        {/* Triângulo conectando os 3 dots — gira na mesma velocidade.
+            Vértices no círculo de raio 50 centrado em (60,60):
+              dot 0: (110, 60)    — 3 o'clock
+              dot 1: (35, 103.3)  — 7 o'clock
+              dot 2: (35, 16.7)   — 11 o'clock */}
+        <motion.svg
+          width={120}
+          height={120}
+          style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'visible' }}
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: 'linear' }}
+        >
+          <polygon
+            points="110,60 35,103.3 35,16.7"
+            fill="none"
+            stroke="var(--accent)"
+            strokeWidth={1}
+            strokeOpacity={0.35}
+            strokeLinejoin="round"
+            style={{ filter: 'drop-shadow(0 0 3px var(--accent-glow))' }}
+          />
+        </motion.svg>
 
-        {/* Estrelas acendendo ao redor */}
-        {SPARKS.map((s, i) => (
+        {[0, 1, 2].map((i) => (
           <motion.span
             key={i}
-            aria-hidden
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: [0, 1, 0.5, 1], scale: 1 }}
-            transition={{ delay: s.delay, duration: 1.8, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
             style={{
               position:     'absolute',
-              left:         '50%',
               top:          '50%',
-              width:        s.size,
-              height:       s.size,
+              left:         '50%',
+              width:        4,
+              height:       4,
+              marginTop:    -2,
+              marginLeft:   -2,
               borderRadius: '50%',
               background:   'var(--accent)',
-              boxShadow:    '0 0 6px var(--accent-glow)',
-              transform:    `translate(${s.x}px, ${s.y}px)`,
+              boxShadow:    '0 0 8px var(--accent)',
             }}
+            animate={{
+              x: Array.from({ length: 13 }, (_, k) => 50 * Math.cos((k / 12) * 2 * Math.PI + i * (2 * Math.PI / 3))),
+              y: Array.from({ length: 13 }, (_, k) => 50 * Math.sin((k / 12) * 2 * Math.PI + i * (2 * Math.PI / 3))),
+            }}
+            transition={{ duration: 2.4, repeat: Infinity, ease: 'linear' }}
           />
         ))}
       </div>
-
-      {/* Wordmark entra depois do logo estabilizar */}
-      <motion.p
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        style={{
-          color:         'var(--text-3)',
-          fontSize:      '0.8rem',
-          fontFamily:    'var(--font-mono)',
-          letterSpacing: '0.35em',
-          margin:        0,
-        }}
-      >
+      <p style={{
+        color:      'var(--text-3)',
+        fontSize:   '0.75rem',
+        fontFamily: 'var(--font-mono)',
+        letterSpacing: '0.1em',
+        margin: 0,
+      }}>
         ASTRA
-      </motion.p>
+      </p>
     </motion.div>
   )
 }

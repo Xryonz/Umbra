@@ -7,6 +7,12 @@
       "skillPath": "SKILL.md",
       "computedHash": "9a64a0cc40f18a385b7200addd1357d6ab3fcf6ea10cbf25f9e327c3b633335a"
     },
+    "capacitor-expert": {
+      "source": "capawesome-team/skills",
+      "sourceType": "github",
+      "skillPath": "skills/capacitor-expert/SKILL.md",
+      "computedHash": "515e0b9a8f8dcd4fba940a46f2de6e29b4464a20acc89a3e55d4ac61ddaf1685"
+    },
     "framer-motion": {
       "source": "mindrally/skills",
       "sourceType": "github",

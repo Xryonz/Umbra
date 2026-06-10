@@ -831,12 +831,22 @@ body {
 }
 
 /* ── App nativo (Capacitor seta .astra-native no <html>) ──────
-   Respiro extra no topo: mesmo com a status bar reservada, o conteúdo
-   colava na divisa — botões do header difíceis de tocar. 10px empurram
-   tudo "para dentro" da área confortável do polegar. border-box: o
-   padding entra na altura, sem overflow. */
+   Respiro no topo: env(safe-area-inset-top) cobre o caso do Android 15
+   edge-to-edge (WebView desenha sob a status bar — inset real ~24-40px);
+   o piso de 16px garante respiro mesmo quando a status bar é reservada
+   (inset 0). Requer viewport-fit=cover no index.html. */
 .astra-native .h-screen-safe {
-  padding-top: 10px;
+  padding-top: max(16px, env(safe-area-inset-top));
   box-sizing: border-box;
   background: var(--void);
+}
+
+/* Teclado nativo abrindo/fechando (lib/native.ts seta a classe): congela
+   transições e animações pra o re-layout do resize assentar em 1 frame.
+   Sem isso, cada frame do teclado re-anima tudo = jank. */
+.astra-kb-resizing *,
+.astra-kb-resizing *::before,
+.astra-kb-resizing *::after {
+  transition: none !important;
+  animation-play-state: paused !important;
 }

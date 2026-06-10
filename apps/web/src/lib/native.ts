@@ -31,6 +31,21 @@ export async function initNativeApp(): Promise<void> {
       .catch(() => {})
   }, 4000)
 
+  // Teclado: resize 'native' re-layouta o WebView a cada frame da animação
+  // do teclado — com transições CSS ativas, cada frame vira tween conflitando
+  // com layout (jank pesado). Congela animações durante o resize: o layout
+  // assenta seco e o teclado desliza liso. Classe consumida no index.css.
+  try {
+    const { Keyboard } = await import('@capacitor/keyboard')
+    const root = document.documentElement
+    const freeze   = () => root.classList.add('astra-kb-resizing')
+    const unfreeze = () => root.classList.remove('astra-kb-resizing')
+    void Keyboard.addListener('keyboardWillShow', freeze)
+    void Keyboard.addListener('keyboardDidShow', unfreeze)
+    void Keyboard.addListener('keyboardWillHide', freeze)
+    void Keyboard.addListener('keyboardDidHide', unfreeze)
+  } catch { /* plugin ausente */ }
+
   // Status bar na cor do void (era branca/default). Style.Dark = fundo
   // escuro com ícones claros. overlay:false reserva o espaço da status bar
   // — sem isso o WebView desenha POR BAIXO dela e os botões do topo do app
