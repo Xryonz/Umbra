@@ -11,6 +11,7 @@ import cors       from 'cors'
 import cookieParser from 'cookie-parser'
 
 import { env }            from './lib/env'
+import { isAllowedOrigin } from './lib/allowedOrigins'
 import { secureHeaders, hidePoweredBy } from './middleware/secureHeaders'
 import { sanitizeInputs } from './middleware/sanitize'
 import { globalLimiter }  from './middleware/rateLimiter'
@@ -66,14 +67,11 @@ app.set('trust proxy', 1)
 
 const httpServer = http.createServer(app)
 
-// Socket.IO CORS: mesmo padrão do HTTP CORS — aceita CLIENT_URL exato
-// + localhost:* em dev (Vite port juggling).
+// Socket.IO CORS: mesma whitelist do HTTP CORS (lib/allowedOrigins) —
+// CLIENT_URL + origins do app Capacitor + localhost:* em dev.
 const socketAllowedOrigin = (origin: string | undefined, cb: (err: Error | null, ok?: boolean) => void) => {
   if (!origin) return cb(null, true)
-  if (origin === env.CLIENT_URL) return cb(null, true)
-  if (env.NODE_ENV === 'development' && /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin)) {
-    return cb(null, true)
-  }
+  if (isAllowedOrigin(origin)) return cb(null, true)
   cb(new Error('CORS blocked'))
 }
 const io = new SocketServer(httpServer, {
@@ -88,17 +86,13 @@ setupSocket(io)
 app.use(hidePoweredBy)
 app.use(secureHeaders)
 
-// CORS: aceita CLIENT_URL exato. Em dev, também aceita qualquer
-// localhost:PORT pra cobrir quando Vite pula porta (5173→5174→5175)
-// quando a anterior tá ocupada — esse cenário pegou a gente no bug
-// silencioso do ProfileCard. Sem isso, request hangs em refresh loop.
-const ALLOW_LOCALHOST_DEV = env.NODE_ENV === 'development'
-const LOCALHOST_RE = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/
+// CORS: whitelist central em lib/allowedOrigins — CLIENT_URL + Capacitor
+// (https://localhost, capacitor://localhost) + localhost:* em dev (Vite
+// pula porta 5173→5174 quando ocupada; já causou bug silencioso).
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin) return cb(null, true)  // server-to-server, curl, etc.
-    if (origin === env.CLIENT_URL) return cb(null, true)
-    if (ALLOW_LOCALHOST_DEV && LOCALHOST_RE.test(origin)) return cb(null, true)
+    if (isAllowedOrigin(origin)) return cb(null, true)
     cb(new Error('CORS blocked'))
   },
   credentials:     true,

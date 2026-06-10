@@ -8,10 +8,12 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { initSentry } from '@/lib/sentry'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { migrateLocalStorage } from '@/lib/migrateLocalStorage'
+import { initNativeApp } from '@/lib/native'
 
 migrateLocalStorage()  // rebrand umbra-* → astra-*
 initSentry()
 restoreTheme()
+void initNativeApp()   // no-op no web; app nativo: deep links + back button
 
 // Preconnect pra API/WS — abre conexão TCP+TLS o quanto antes (~150ms
 // de economia na 1ª chamada). API URL só existe via env, então injeta

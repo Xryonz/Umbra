@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api, setStoredRefreshToken, clearStoredRefreshToken, getStoredRefreshToken } from '@/lib/api'
 import { connectSocket, disconnectSocket } from '@/lib/socket'
+import { completeOAuthLogin } from '@/lib/oauth'
 import { useAuthStore } from '@/store/authStore'
 import type { LoginInput, RegisterInput } from '@astra/types'
 
@@ -42,21 +43,11 @@ export function useAuth() {
   }, [clearAuth, navigate])
 
   // Após callback OAuth, o backend redirecionou com #refresh=<token> na hash.
-  // Extraímos, salvamos em localStorage e fazemos refresh pra access token.
-  const handleOAuthCallback = useCallback(async (refreshToken: string) => {
-    setStoredRefreshToken(refreshToken)
-    const refreshRes = await api.post('/api/auth/refresh', {}, {
-      headers: { Authorization: `Bearer ${refreshToken}` },
-    })
-    const newAccess  = refreshRes.data.data.accessToken
-    const newRefresh = refreshRes.data.data.refreshToken
-    setStoredRefreshToken(newRefresh)
-    useAuthStore.getState().setAccessToken(newAccess)
-
-    const meRes = await api.get('/api/auth/me')
-    setAuth(meRes.data.data.user, newAccess)
-    connectSocket()
-  }, [setAuth])
+  // Lógica em lib/oauth.ts — compartilhada com o deep link do app nativo.
+  const handleOAuthCallback = useCallback(
+    (refreshToken: string) => completeOAuthLogin(refreshToken),
+    [],
+  )
 
   return { user, isAuthenticated, login, register, logout, handleOAuthCallback }
 }

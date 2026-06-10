@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { env } from '../lib/env'
+import { isAllowedOrigin } from '../lib/allowedOrigins'
 
 /**
  * Proteção CSRF leve para endpoints que usam o refresh cookie.
@@ -12,15 +13,12 @@ import { env } from '../lib/env'
  * Use APENAS em endpoints que mutam estado e dependem de cookie.
  * Endpoints com Authorization: Bearer já estão imunes a CSRF (atacante
  * não consegue ler o token de outro origin).
+ *
+ * Whitelist de origins centralizada em lib/allowedOrigins (inclui app
+ * Capacitor — WebView nativo manda Origin https://localhost).
  */
-// Aceita exato (prod) OU localhost:* em dev (Vite port juggling).
+// Em dev, Referer de localhost:* também passa (Vite port juggling).
 const LOCALHOST_RE = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/
-function isAllowedOrigin(origin: string | undefined): boolean {
-  if (!origin) return false
-  if (origin === env.CLIENT_URL) return true
-  if (env.NODE_ENV === 'development' && LOCALHOST_RE.test(origin)) return true
-  return false
-}
 
 export function requireSameOrigin(req: Request, res: Response, next: NextFunction) {
   const origin  = req.headers.origin

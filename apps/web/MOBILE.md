@@ -10,14 +10,20 @@ Guia pra empacotar Astra como app nativo Android/iOS via Capacitor 7.
 
 | Plataforma | Toolchain |
 |---|---|
-| **Android** | JDK 17 (Temurin recomendado), Android Studio ou SDK Command-line Tools |
+| **Android** | **JDK 21** (Temurin), Android SDK (cmdline-tools ou Android Studio) |
 | **iOS** | macOS + Xcode 15+, CocoaPods (`brew install cocoapods`) |
 
-Confirmar antes de seguir:
-```bash
-java -version   # deve dizer 17.x
-echo $JAVA_HOME # deve apontar pro JDK 17
-```
+> **JDK 21, não 17**: Capacitor 7 compila com `sourceCompatibility VERSION_21`
+> (ver `android/app/capacitor.build.gradle`). JDK 17 falha com
+> `error: invalid source release: 21`.
+
+**Setup desta máquina (já feito):**
+- JDK 21 Temurin via winget → apontado em `android/gradle.properties`
+  (`org.gradle.java.home`), sem mexer no JAVA_HOME global
+- Android SDK via cmdline-tools em `%LOCALAPPDATA%\Android\Sdk`
+  (platform-tools + android-35 + build-tools 35) → `android/local.properties`
+- `android.overridePathCheck=true` no gradle.properties porque o path do
+  repo tem acento ("Códigos") e o AGP bloqueia non-ASCII no Windows
 
 ---
 
@@ -110,12 +116,28 @@ npx @capacitor/assets generate --iconBackgroundColor '#06060e' --splashBackgroun
 
 ---
 
+## Instalar no celular (sem Android Studio)
+
+```bash
+# 1. Compilar
+cd apps/web/android && ./gradlew assembleDebug
+# APK: android/app/build/outputs/apk/debug/app-debug.apk (~9MB)
+
+# 2a. Via USB (depuração USB ligada no celular):
+%LOCALAPPDATA%\Android\Sdk\platform-tools\adb install app/build/outputs/apk/debug/app-debug.apk
+
+# 2b. Sem cabo: mandar o .apk pro celular (Drive/WhatsApp/etc),
+#     tocar no arquivo e aceitar "instalar de fonte desconhecida".
+```
+
 ## Problemas conhecidos
 
 | Problema | Solução |
 |---|---|
 | `Unable to launch Android Studio` | `npx cap open android` precisa Android Studio instalado **OU** seta `CAPACITOR_ANDROID_STUDIO_PATH` env var. Sem Studio, buildar via `cd android && ./gradlew assembleDebug`. |
-| `JDK 26 incompatível com AGP` | AGP 8.x suporta oficialmente JDK 17/21. Use JDK 17 LTS (Temurin) e seta `JAVA_HOME`. |
+| `error: invalid source release: 21` | Capacitor 7 exige JDK 21. Instalar Temurin 21 e apontar `org.gradle.java.home` no `android/gradle.properties`. |
+| `Your project path contains non-ASCII characters` | `android.overridePathCheck=true` no `android/gradle.properties` (já aplicado). |
+| `SDK location not found` | Criar `android/local.properties` com `sdk.dir=C:/Users/<user>/AppData/Local/Android/Sdk`. |
 | `WebSocket falha em iOS` | iOS WKWebView às vezes bloqueia WS sem TLS. Use `wss://` em prod (Railway já dá). |
 | Push web (VAPID) não chega em iOS | iOS 16.4+ suporta web push, mas só pra PWAs instalados via "Add to Home Screen". Pra reliability, use plugin nativo. |
 

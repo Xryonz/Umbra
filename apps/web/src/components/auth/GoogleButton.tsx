@@ -1,7 +1,9 @@
+import { openGoogleLogin } from '@/lib/native'
+
 export default function GoogleButton() {
-  const handleClick = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/google`
-  }
+  // No app nativo abre Custom Tab (Google bloqueia OAuth em WebView);
+  // no web é o redirect de sempre. Lógica em lib/native.ts.
+  const handleClick = () => { void openGoogleLogin() }
 
   return (
     <button

@@ -198,16 +198,29 @@ router.get(
 )
 
 // ── Google OAuth ──────────────────────────────────────────────
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }))
+// App nativo (Capacitor): WebViews embarcados são BLOQUEADOS pelo Google
+// (disallowed_useragent), então o app abre este endpoint numa Custom Tab /
+// Safari View com ?platform=mobile. O `state` do OAuth carrega essa flag
+// até o callback, que então redireciona pro deep link astra:// em vez do
+// CLIENT_URL — o OS troca de volta pro app, que extrai o token do fragment.
+router.get('/google', (req: Request, res: Response, next) => {
+  const state = req.query.platform === 'mobile' ? 'mobile' : undefined
+  passport.authenticate('google', { scope: ['profile', 'email'], session: false, state })(req, res, next)
+})
 
 router.get(
   '/google/callback',
   (req: Request, res: Response, next) => {
+    const isMobile  = req.query.state === 'mobile'
+    // Deep link pro app nativo; web continua indo pro CLIENT_URL
+    const clientBase = isMobile ? 'astra://auth/callback' : `${process.env.CLIENT_URL}/auth/callback`
+    const loginUrl   = isMobile ? 'astra://login'         : `${process.env.CLIENT_URL}/login`
+
     // Callback custom pra capturar `info` (3º arg do done()) com email
     // não-registrado e redirecionar pra /login com query param amigável.
     passport.authenticate('google', { session: false }, async (err: Error | null, user: { id: string } | false, info: { code?: string; email?: string } | undefined) => {
       if (err) {
-        return res.redirect(`${process.env.CLIENT_URL}/login?error=oauth`)
+        return res.redirect(`${loginUrl}?error=oauth`)
       }
       if (!user) {
         if (info?.code === 'email_not_registered' && info.email) {
@@ -215,9 +228,9 @@ router.get(
             error: 'google_email_unregistered',
             email: info.email,
           })
-          return res.redirect(`${process.env.CLIENT_URL}/login?${q.toString()}`)
+          return res.redirect(`${loginUrl}?${q.toString()}`)
         }
-        return res.redirect(`${process.env.CLIENT_URL}/login?error=oauth`)
+        return res.redirect(`${loginUrl}?error=oauth`)
       }
       try {
         const { refreshToken } = await createRefreshToken(user.id, {
@@ -225,7 +238,7 @@ router.get(
           ip:        req.ip,
         })
         // Hash fragment: não aparece em access logs, server nunca vê.
-        res.redirect(`${process.env.CLIENT_URL}/auth/callback#refresh=${encodeURIComponent(refreshToken)}`)
+        res.redirect(`${clientBase}#refresh=${encodeURIComponent(refreshToken)}`)
       } catch (e) {
         next(e)
       }
