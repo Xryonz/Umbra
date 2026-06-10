@@ -304,6 +304,15 @@ export default function AppPage() {
 
   return (
     <div className="flex h-screen-safe overflow-hidden font-(family-name:--font-body) pb-14 md:pb-0">
+      {/* A11y skip-link: invisível até receber foco (Tab). Pula sidebar/header
+          pra usuários de teclado/screen reader irem direto pro conteúdo. */}
+      <a
+        href="#astra-main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-9999 focus:px-3 focus:py-2 focus:rounded-lg focus:bg-(--accent) focus:text-(--text-inv) focus:text-sm focus:font-medium focus:shadow-3"
+      >
+        Pular para o conteúdo
+      </a>
+
       {/* Sidebar mounted once — sobrevive entre rotas, sem re-mount/animation bug */}
       <Sidebar
         activeChannelId={activeId}
@@ -312,18 +321,22 @@ export default function AppPage() {
         }
       />
 
-      <Suspense fallback={<div className="flex-1 min-w-0 h-full" />}>
-        <AnimatePresence mode="wait" initial={false}>
-          <Routes location={location} key={location.pathname.split('/').slice(0, 3).join('/')}>
-            <Route path="dm/*"    element={<PageTransition className="flex-1 min-w-0 h-full"><DMPage /></PageTransition>} />
-            <Route path="friends" element={<PageTransition><FriendsPage /></PageTransition>} />
-            <Route path="profile" element={<PageTransition><ProfilePage /></PageTransition>} />
-            <Route path="settings" element={<PageTransition><SettingsPage /></PageTransition>} />
-            <Route path="servers/:serverId/settings" element={<PageTransition><ServerSettingsPage /></PageTransition>} />
-            <Route path="*"       element={<PageTransition><ChannelView /></PageTransition>} />
-          </Routes>
-        </AnimatePresence>
-      </Suspense>
+      {/* `display: contents` deixa o flex parent enxergar o PageTransition direto
+          (não cria flex item adicional). Suportado em todos browsers modernos. */}
+      <main id="astra-main" tabIndex={-1} className="contents">
+        <Suspense fallback={<div className="flex-1 min-w-0 h-full" />}>
+          <AnimatePresence mode="wait" initial={false}>
+            <Routes location={location} key={location.pathname.split('/').slice(0, 3).join('/')}>
+              <Route path="dm/*"    element={<PageTransition className="flex-1 min-w-0 h-full"><DMPage /></PageTransition>} />
+              <Route path="friends" element={<PageTransition><FriendsPage /></PageTransition>} />
+              <Route path="profile" element={<PageTransition><ProfilePage /></PageTransition>} />
+              <Route path="settings" element={<PageTransition><SettingsPage /></PageTransition>} />
+              <Route path="servers/:serverId/settings" element={<PageTransition><ServerSettingsPage /></PageTransition>} />
+              <Route path="*"       element={<PageTransition><ChannelView /></PageTransition>} />
+            </Routes>
+          </AnimatePresence>
+        </Suspense>
+      </main>
 
       <Suspense fallback={null}>
         <CommandPalette />

@@ -91,6 +91,16 @@ html {
 
 /* Light mode dropped — Astra é dark-only por design (editorial-dark é a brand) */
 
+/* A11y: focus-visible global. Browser default (azul Chrome) brigava com
+   tema cósmico. Aparece só em navegação por teclado (Tab), invisível em
+   mouse-clicks. Cobertura ampla: button/a/input/textarea/select/[tabindex]. */
+*:focus { outline: none; }
+:where(button, a, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
 /* ═══════════════════════════════════════════════════════════
    TAILWIND v4 @theme — gera utilities (bg-background, text-primary etc)
    que componentes ShadcnUI esperam, apontando para os tokens Astra.
