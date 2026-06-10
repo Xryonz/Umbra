@@ -20,9 +20,12 @@ export async function initNativeApp(): Promise<void> {
   if (!isNative) return
 
   // Status bar na cor do void (era branca/default). Style.Dark = fundo
-  // escuro com ícones claros. Falha silenciosa se plugin faltar no build.
+  // escuro com ícones claros. overlay:false reserva o espaço da status bar
+  // — sem isso o WebView desenha POR BAIXO dela e os botões do topo do app
+  // ficam cortados (Android edge-to-edge). Falha silenciosa se plugin faltar.
   try {
     const { StatusBar, Style } = await import('@capacitor/status-bar')
+    await StatusBar.setOverlaysWebView({ overlay: false })
     await StatusBar.setBackgroundColor({ color: '#06060e' })
     await StatusBar.setStyle({ style: Style.Dark })
   } catch { /* plugin ausente — segue sem status bar custom */ }

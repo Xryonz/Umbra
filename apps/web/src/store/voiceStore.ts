@@ -161,7 +161,25 @@ export const useVoiceStore = create<VoiceState>((set, get) => {
         // economia de banda não compensa.
         // dynacast continua ON — publisher-side, escala simulcast layers
         // pela demanda agregada dos subscribers.
-        const room = new Room({ adaptiveStream: false, dynacast: true })
+        const room = new Room({
+          adaptiveStream: false,
+          dynacast:       true,
+          // Limpeza de captura: o trio que WhatsApp/Discord ligam por
+          // padrão — eco, ruído de fundo e ganho automático.
+          audioCaptureDefaults: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl:  true,
+          },
+          // Voz a 48kbps (preset music) em vez dos ~32k default — mais
+          // corpo na voz. dtx (silêncio não transmite) + red (pacotes
+          // redundantes) explícitos pra resiliência em wifi/4G oscilando.
+          publishDefaults: {
+            audioPreset: lk.AudioPresets.music,
+            dtx: true,
+            red: true,
+          },
+        })
         bindRoomEvents(RoomEvent, room, refresh, handleDisc)
         await room.connect(url, token)
 
@@ -238,7 +256,10 @@ export const useVoiceStore = create<VoiceState>((set, get) => {
           const pub = await lp.setScreenShareEnabled(
             true,
             { resolution: { width: 1920, height: 1080, frameRate: 60 }, audio: false },
-            { videoEncoding: { maxBitrate: 5_000_000, maxFramerate: 60 }, simulcast: false },
+            // 8Mbps: a 5Mbps, 1080p60 com muito movimento (jogo) mostrava
+            // macroblocking. Browser entrega no máx 60fps de captura —
+            // 120fps não existe em getDisplayMedia, o teto é do Chrome.
+            { videoEncoding: { maxBitrate: 8_000_000, maxFramerate: 60 }, simulcast: false },
           )
           // contentHint = 'motion' diz ao encoder pra priorizar fluidez
           // (smearing aceitável) em vez de nitidez por frame — crítico

@@ -540,11 +540,14 @@ export default function MessageInput({
         </div>
       )}
 
-      {/* Composer row — pill input com radius suave */}
+      {/* Composer row — pill input com radius suave.
+          Mobile: 48px de altura mínima (norma de toque Material/WhatsApp)
+          e foco indicado só pela borda — ring extra ficava poluído na tela
+          pequena. Desktop mantém o ring suave. */}
       <div
         className={cn(
-          'flex items-center gap-1.5 min-h-10 px-2 py-1 rounded-xl border border-(--border-mid) bg-(--raised)/40',
-          'focus-within:border-(--accent) focus-within:bg-(--raised)/60 focus-within:ring-2 focus-within:ring-(--accent)/15',
+          'flex items-center gap-1.5 min-h-12 sm:min-h-10 px-2 py-1 rounded-xl border border-(--border-mid) bg-(--raised)/40',
+          'focus-within:border-(--accent) focus-within:bg-(--raised)/60 sm:focus-within:ring-2 sm:focus-within:ring-(--accent)/15',
           'transition-[border-color,background-color,box-shadow] duration-200',
           muted && 'opacity-50',
         )}
@@ -626,7 +629,7 @@ export default function MessageInput({
             placeholder={muted ? 'Silenciado…' : attachments.length > 0 ? 'Mensagem opcional…' : `Mensagem em #${channelName}`}
             rows={1}
             className="
-              flex-1 bg-transparent text-foreground text-sm leading-5
+              flex-1 bg-transparent text-foreground text-base sm:text-sm leading-6 sm:leading-5
               border-0 outline-none resize-none max-h-32 px-1 py-1
               placeholder:text-(--text-3) placeholder:font-normal
               font-(family-name:--font-body)

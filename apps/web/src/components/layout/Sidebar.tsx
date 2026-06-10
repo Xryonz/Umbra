@@ -10,6 +10,7 @@ import { toast } from '@/components/ui/sonner'
 import { useVoiceCall, useVoiceConfig, useVoiceChannelPresence, parseRoomName } from '@/hooks/useVoiceCall'
 import { useUsersMini } from '@/hooks/useUsersMini'
 import { api, resolveApiUrl } from '@/lib/api'
+import { prefetchChannelMessages } from '@/lib/prefetch'
 import { isNative, shareInvite } from '@/lib/native'
 import { useAuthStore } from '@/store/authStore'
 import { useUIStore } from '@/store/uiStore'
@@ -610,6 +611,7 @@ function ChannelButton({
   const inThis   = parseRoomName(voice.roomName)?.id === channel.id
   const confirm  = useConfirm()
   const prompt   = usePrompt()
+  const qc       = useQueryClient()
 
   const handleClick = () => {
     if (isVoice) {
@@ -620,6 +622,12 @@ function ChannelButton({
     } else {
       onClick()
     }
+  }
+
+  // Prefetch no touchstart (mobile) / mouseenter (desktop): a request das
+  // mensagens sai ~100ms antes do click completar — canal abre quente.
+  const handlePrefetch = () => {
+    if (!isVoice && !isActive) prefetchChannelMessages(qc, channel.id)
   }
 
   // Itens do context menu (right-click) — varia por perm + tipo
@@ -692,6 +700,8 @@ function ChannelButton({
     <div className="flex flex-col">
     <button
       onClick={handleClick}
+      onTouchStart={handlePrefetch}
+      onMouseEnter={handlePrefetch}
       disabled={isVoice && !cfg.data?.enabled}
       title={isVoice && !cfg.data?.enabled ? 'Chamadas não configuradas no servidor' : undefined}
       className={cn(

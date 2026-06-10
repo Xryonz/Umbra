@@ -93,12 +93,20 @@ html {
 
 /* A11y: focus-visible global. Browser default (azul Chrome) brigava com
    tema cósmico. Aparece só em navegação por teclado (Tab), invisível em
-   mouse-clicks. Cobertura ampla: button/a/input/textarea/select/[tabindex]. */
+   mouse-clicks. Campos de texto (input/textarea) ficam DE FORA: eles sempre
+   disparam :focus-visible ao digitar, e o outline somava com o focus-within
+   do composer = borda dupla poluída no mobile. Caret + estilo do container
+   já sinalizam o foco neles. */
 *:focus { outline: none; }
-:where(button, a, input, textarea, select, [tabindex]):focus-visible {
+:where(button, a, select, [tabindex]):focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 6px;
+}
+/* Checkbox/radio/switch ainda merecem outline (não têm caret) */
+:where(input[type="checkbox"], input[type="radio"], input[type="range"]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* ═══════════════════════════════════════════════════════════

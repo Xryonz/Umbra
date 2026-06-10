@@ -3,12 +3,13 @@ import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-quer
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Hash, Feather } from 'lucide-react'
 import { api } from '@/lib/api'
+import { fetchMessagesPage } from '@/lib/prefetch'
 import { useChannel } from '@/hooks/useSocket'
 import { useUnread } from '@/hooks/useUnread'
 import MessageItem from './MessageItem'
 import { MessageListSkeleton } from '@/components/skeletons/MessageListSkeleton'
 import { Empty, EmptyIcon, EmptyLabel, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
-import type { MessageWithAuthor, PaginatedResponse } from '@astra/types'
+import type { MessageWithAuthor } from '@astra/types'
 
 // Optimistic messages have this extra field
 type OptimisticMessage = MessageWithAuthor & { optimisticId?: string; isPending?: boolean }
@@ -59,12 +60,8 @@ export default function MessageList({
     data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading,
   } = useInfiniteQuery({
     queryKey: ['messages', channelId],
-    queryFn: async ({ pageParam }) => {
-      const params = new URLSearchParams({ limit: '30' })
-      if (pageParam) params.set('cursor', pageParam as string)
-      const res = await api.get(`/api/channels/${channelId}/messages?${params}`)
-      return res.data.data as PaginatedResponse<MessageWithAuthor>
-    },
+    // Fetcher compartilhado com prefetchChannelMessages (Sidebar touchstart)
+    queryFn: ({ pageParam }) => fetchMessagesPage(channelId, pageParam as string | undefined),
     getNextPageParam: (p) => p.nextCursor ?? undefined,
     initialPageParam: undefined as string | undefined,
   })
@@ -350,6 +347,10 @@ export default function MessageList({
                 left:     0,
                 right:    0,
                 transform: `translateY(${row.start}px)`,
+                // Isola o layout de cada row: emoji/imagem carregando numa
+                // mensagem não força re-layout das vizinhas. Sem `paint`
+                // (cliparia hover cards que escapam do row).
+                contain:  'layout',
               }}
             >
               <MessageItem
