@@ -174,6 +174,7 @@ export function createDMRouter(io: SocketServer) {
         author: {
           id: users.id, username: users.username,
           displayName: users.displayName, avatarUrl: users.avatarUrl,
+          displayFont: users.displayFont,
         },
       })
         .from(directMessages)
@@ -272,6 +273,7 @@ export function createDMRouter(io: SocketServer) {
         db.select({
           id: users.id, username: users.username,
           displayName: users.displayName, avatarUrl: users.avatarUrl,
+          displayFont: users.displayFont,
         }).from(users).where(eq(users.id, req.userId!)).limit(1),
       ])
       const inserted = insertedRows[0]

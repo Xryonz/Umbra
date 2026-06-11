@@ -16,27 +16,18 @@
     <meta name="theme-color" content="#06060e" />
     <title>Astra</title>
 
-    <!-- Resource hints: preconnect estabelece conexão TCP+TLS antes
-         do request, economizando ~100-200ms na primeira chamada.
-         dns-prefetch é mais leve (só DNS), bom pra hosts secundários. -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Resource hints: dns-prefetch é leve (só DNS), bom pra hosts secundários. -->
     <link rel="dns-prefetch" href="https://livekit.cloud" />
     <link rel="dns-prefetch" href="https://sentry.io" />
     <link rel="dns-prefetch" href="https://o4504609119952896.ingest.sentry.io" />
     <link rel="dns-prefetch" href="https://tenor.googleapis.com" />
 
-    <!-- Preload + media swap: fonts críticas baixam em paralelo ao parsing,
-         CSS aplica via display=swap (texto sem flash invisível). -->
-    <link
-      rel="preload"
-      as="style"
-      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&family=Great+Vibes&display=swap"
-    />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&family=Great+Vibes&display=swap"
-    />
+    <!-- Fontes self-hosted (/public/fonts, @font-face em src/fonts.css).
+         Preload das 2 críticas do primeiro paint: body (DM Sans, arquivo
+         variável cobre pesos 300-600) e display (DM Serif). Fonts exigem
+         crossorigin no preload mesmo same-origin. -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/dm-sans-normal-300-latin.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/dm-serif-display-normal-400-latin.woff2" />
   </head>
   <body>
     <div id="root"></div>

@@ -174,6 +174,7 @@ export function createMessagesRouter(io: SocketServer) {
           username:    users.username,
           displayName: users.displayName,
           avatarUrl:   users.avatarUrl,
+          displayFont: users.displayFont,
         },
         parentId:           parent.id,
         parentContent:      parent.content,
@@ -556,6 +557,7 @@ export function createMessagesRouter(io: SocketServer) {
           username:    users.username,
           displayName: users.displayName,
           avatarUrl:   users.avatarUrl,
+          displayFont: users.displayFont,
         },
       })
         .from(messages)

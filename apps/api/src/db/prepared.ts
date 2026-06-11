@@ -30,6 +30,7 @@ export const selectAuthorById = db.select({
   username:    users.username,
   displayName: users.displayName,
   avatarUrl:   users.avatarUrl,
+  displayFont: users.displayFont,
 }).from(users)
   .where(eq(users.id, sql.placeholder('userId')))
   .limit(1)

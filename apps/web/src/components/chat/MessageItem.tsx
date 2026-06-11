@@ -21,6 +21,7 @@ import EditHistoryPopover from '@/components/chat/EditHistoryPopover'
 import { useIsBookmarked, useToggleBookmark } from '@/hooks/useBookmarks'
 import { TRANSLATE_LANGS, useTranslateMessage, type TranslateLang } from '@/hooks/useTranslate'
 import { cn } from '@/lib/utils'
+import { FONT_FAMILY, type DisplayFont } from '@/components/profile/profileFonts'
 import type { MessageWithAuthor } from '@astra/types'
 
 import { MessageReactions, type Reaction } from './Message/MessageReactions'
@@ -127,9 +128,10 @@ function Spinner() {
   )
 }
 
-function AuthorName({ name, color, msgId, isBot }: {
-  name: string; color: ParsedColor; msgId: string; isBot?: boolean
+function AuthorName({ name, color, msgId, isBot, font }: {
+  name: string; color: ParsedColor; msgId: string; isBot?: boolean; font?: DisplayFont
 }) {
+  const fontFamily = FONT_FAMILY[font ?? 'serif']
   if (color.type === 'gradient') {
     const rad    = (color.angle * Math.PI) / 180
     const gradId = `g-${msgId}`
@@ -146,7 +148,7 @@ function AuthorName({ name, color, msgId, isBot }: {
             </linearGradient>
           </defs>
           <text y="17" fill={`url(#${gradId})`} fontSize="16" fontWeight="400"
-            fontFamily="var(--font-display)" letterSpacing="-0.005em">{name}</text>
+            fontFamily={fontFamily} letterSpacing="-0.005em">{name}</text>
         </svg>
         {isBot && <BotBadge />}
       </span>
@@ -159,7 +161,7 @@ function AuthorName({ name, color, msgId, isBot }: {
           color: color.value,
           fontSize: 16,
           fontWeight: 400,
-          fontFamily: 'var(--font-display)',
+          fontFamily,
           letterSpacing: '-0.005em',
           lineHeight: 1.1,
         }}
@@ -737,7 +739,7 @@ function MessageItemImpl({
                 onClick={() => setProfileUserId(author.id)}
                 className="cursor-pointer"
               >
-                <AuthorName name={author.displayName} color={parsedColor} msgId={message.id} isBot={isBot} />
+                <AuthorName name={author.displayName} color={parsedColor} msgId={message.id} isBot={isBot} font={author.displayFont} />
               </span>
               {!isPending && (
                 <span className="text-marg text-muted-foreground" style={{ fontFamily: 'var(--font-mono)' }}>

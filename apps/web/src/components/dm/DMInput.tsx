@@ -82,7 +82,7 @@ export default function DMInput({
       id: optimisticId, content: '', edited: false,
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
       optimisticId, isPending: true,
-      author: { id: user!.id, username: user!.username, displayName: user!.displayName, avatarUrl: user!.avatarUrl ?? null },
+      author: { id: user!.id, username: user!.username, displayName: user!.displayName, avatarUrl: user!.avatarUrl ?? null, displayFont: (user as any)?.displayFont },
       attachments: [att],
       replyTo: null,
     } as any
@@ -161,6 +161,7 @@ export default function DMInput({
         username:    user.username,
         displayName: user.displayName,
         avatarUrl:   user.avatarUrl ?? null,
+        displayFont: (user as any)?.displayFont,
       },
       attachments: attachmentsToSend,
       replyTo:     replyToSnapshot,

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Constellation } from '@/components/astra/Constellation'
 
 /**
  * Banner do perfil — imagem com fallback pra gradient/cor sólida.
@@ -9,6 +10,8 @@ interface Props {
   bannerUrl?:        string | null
   bannerColor?:      string | null  // hex ou gradient string
   fallbackGradient:  string         // gradient determinístico do user.id
+  /** Username — desenha a constelação-assinatura quando não há imagem custom. */
+  username?:         string
   /** Posição vertical da img (0-100). Default 50 (centro). */
   positionY?:        number
   /** Zoom da img (100-200). Default 100. */
@@ -16,7 +19,7 @@ interface Props {
 }
 
 export function ProfileBanner({
-  bannerUrl, bannerColor, fallbackGradient, positionY = 50, scale = 100,
+  bannerUrl, bannerColor, fallbackGradient, username, positionY = 50, scale = 100,
 }: Props) {
   const [imgError, setImgError] = useState(false)
   const [imgLoaded, setImgLoaded] = useState(false)
@@ -26,6 +29,14 @@ export function ProfileBanner({
 
   return (
     <div className="relative h-48 overflow-hidden shrink-0" style={{ background: bg }}>
+      {/* Pessoas = estrelas: constelação do username sobre o gradient quando não há banner custom */}
+      {!showImage && username && (
+        <Constellation
+          name={username}
+          animated
+          className="absolute inset-0 w-full h-full text-white/35 mix-blend-screen"
+        />
+      )}
       {showImage && (
         <img
           src={bannerUrl!}

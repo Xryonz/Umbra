@@ -1,10 +1,12 @@
 @import "tailwindcss";
+@import "./fonts.css";
 @plugin "tailwindcss-animate";
 
 /* ═══════════════════════════════════════════════════════════
    FONTS
    ═══════════════════════════════════════════════════════════ */
-/* DM Serif Display · DM Sans · DM Mono — loaded via index.html */
+/* DM Serif Display · DM Sans · DM Mono · Great Vibes — self-hosted
+   em /public/fonts (ver fonts.css). Funciona offline no app nativo. */
 
 /* ═══════════════════════════════════════════════════════════
    DESIGN TOKENS — UMBRA "DARK OBSIDIAN"

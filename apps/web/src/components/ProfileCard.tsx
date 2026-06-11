@@ -130,6 +130,7 @@ export default function ProfileCard({ userId, onClose }: ProfileCardProps) {
                 bannerUrl={profile.bannerUrl}
                 bannerColor={profile.bannerColor}
                 fallbackGradient={gradient}
+                username={profile.username}
                 positionY={profile.bannerPositionY}
                 scale={profile.bannerScale}
               />

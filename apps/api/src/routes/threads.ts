@@ -127,7 +127,7 @@ export function createThreadsRouter(io: SocketServer) {
         id: messages.id, content: messages.content, channelId: messages.channelId, threadId: messages.threadId,
         authorColor: messages.authorColor, mentions: messages.mentions, edited: messages.edited, pinned: messages.pinned,
         createdAt: messages.createdAt, updatedAt: messages.updatedAt,
-        author: { id: users.id, username: users.username, displayName: users.displayName, avatarUrl: users.avatarUrl },
+        author: { id: users.id, username: users.username, displayName: users.displayName, avatarUrl: users.avatarUrl, displayFont: users.displayFont },
       })
         .from(messages)
         .innerJoin(users, eq(users.id, messages.authorId))

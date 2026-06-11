@@ -326,7 +326,7 @@ export default function CustomizationSection() {
       </Row>
 
       {/* ═══ Display font ═══ */}
-      <Row label="Fonte do nome" hint="Tipografia do displayName e bio no card. 8 famílias curadas.">
+      <Row label="Fonte do nome" hint="Tipografia do seu nome no card de perfil e nas mensagens do chat. 8 famílias curadas.">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {DISPLAY_FONT_OPTIONS.map((f) => (
             <button

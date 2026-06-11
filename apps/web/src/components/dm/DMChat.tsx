@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useDMReads } from '@/hooks/useUnread'
 import { format, isToday, isYesterday } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { FONT_FAMILY } from '@/components/profile/profileFonts'
 import type { MessageWithAuthor, PaginatedResponse, Attachment } from '@astra/types'
 
 function isImage(a: { type?: string; name?: string; url?: string }) {
@@ -364,7 +365,7 @@ function DMMessage({ message, isMine, grouped, isPending, color, delay, showSeen
             display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 3,
             flexDirection: isMine ? 'row-reverse' : 'row',
           }}>
-            <span style={{ color, fontSize: 12, fontWeight: 600 }}>
+            <span style={{ color, fontSize: 12, fontWeight: 600, fontFamily: FONT_FAMILY[author.displayFont ?? 'serif'] }}>
               {isMine ? 'Você' : author.displayName}
             </span>
             {!isPending && (

@@ -121,6 +121,7 @@ export function ProfileHoverCard({ username, userId, children, side = 'top', ali
               bannerUrl={data?.bannerUrl}
               bannerColor={data?.bannerColor}
               fallbackGradient={FALLBACK}
+              username={data?.username}
               positionY={data?.bannerPositionY}
               scale={data?.bannerScale}
             />
