@@ -195,14 +195,17 @@ export default function ServerSettingsPage() {
 
   if (!server) {
     return (
-      <div className="flex-1 flex items-center justify-center gap-2 h-screen-safe text-sm text-(--text-3)">
+      <div className="flex-1 flex items-center justify-center gap-2 h-full text-sm text-(--text-3)">
         <Spinner size={14} /> Carregando…
       </div>
     )
   }
 
   return (
-    <div className="flex-1 min-w-0 h-screen-safe overflow-y-auto">
+    // h-full (NÃO h-screen-safe): a página vive DENTRO do shell do AppPage,
+    // que já desconta tab bar + notch — 100svh aqui estourava por baixo e
+    // cortava o conteúdo no app.
+    <div className="flex-1 min-w-0 h-full overflow-y-auto">
       {/* Header */}
       <header className="sticky top-0 z-10 h-16 px-4 sm:px-6 flex items-center gap-3 border-b border-(--border) bg-(--base)/95 backdrop-blur">
         <button
@@ -296,7 +299,7 @@ export default function ServerSettingsPage() {
                 <div className="relative w-full h-28 border border-(--border) overflow-hidden">
                   {bannerUrl
                     ? <img src={bannerUrl} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
-                    : <ConstellationBanner name={server.name} className="w-full h-full" />}
+                    : <ConstellationBanner name={server.name} stars={members.length || undefined} className="w-full h-full" />}
                 </div>
                 <div className="flex flex-col gap-2">
                   <input

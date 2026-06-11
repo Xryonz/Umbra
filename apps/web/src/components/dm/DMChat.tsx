@@ -30,8 +30,9 @@ interface DMChatProps {
   conversationId: string
   otherUser: OtherUser
   onRegisterOptimistic: (
-    add:    (msg: OptimisticMessage) => void,
-    remove: (id: string) => void
+    add:     (msg: OptimisticMessage) => void,
+    remove:  (id: string) => void,
+    confirm: (optimisticId: string, msg: MessageWithAuthor) => void,
   ) => void
   onReply?: (msg: MessageWithAuthor) => void
 }
@@ -67,9 +68,25 @@ export default function DMChat({ conversationId, otherUser, onRegisterOptimistic
   const removeOptimistic = useCallback((optimisticId: string) => {
     setOptimisticMsgs((prev) => prev.filter((m) => m.optimisticId !== optimisticId))
   }, [])
+
+  // Confirma pela RESPOSTA do POST (remoção exata por optimisticId) — o eco
+  // 'new_dm' do socket vira redundância. Antes a remoção era só heurística
+  // (autor+conteúdo+5s) via broadcast: se ele se perdia, a otimista ficava
+  // presa em "enviando" e a real aparecia duplicada no refetch.
+  const confirmOptimistic = useCallback((optimisticId: string, msg: MessageWithAuthor) => {
+    setOptimisticMsgs((prev) => prev.filter((o) => o.optimisticId !== optimisticId))
+    queryClient.setQueryData(['dm-messages', conversationId], (old: any) => {
+      if (!old) return old
+      const [first, ...rest] = old.pages
+      if (first.items.some((m: MessageWithAuthor) => m.id === msg.id)) return old
+      return { ...old, pages: [{ ...first, items: [...first.items, msg] }, ...rest] }
+    })
+    setShouldScrollToBottom(true)
+  }, [conversationId, queryClient])
+
   useEffect(() => {
-    onRegisterOptimistic(addOptimistic, removeOptimistic)
-  }, [onRegisterOptimistic, addOptimistic, removeOptimistic])
+    onRegisterOptimistic(addOptimistic, removeOptimistic, confirmOptimistic)
+  }, [onRegisterOptimistic, addOptimistic, removeOptimistic, confirmOptimistic])
 
   // Fetch profile theme do parceiro (cache compartilhado com ProfileCard).
   // Usado pra tingir o welcome header com a estética dele.

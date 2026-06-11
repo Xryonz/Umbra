@@ -285,6 +285,11 @@ export default function Sidebar({ activeChannelId, onSelectChannel }: SidebarPro
             <div className="w-7 h-px bg-border my-0.5" />
           </div>
 
+          {/* Spacer mobile: junto com o flex-1 do fundo, centraliza os
+              ícones na vertical (zona do polegar). Some quando a lista
+              cresce (flex encolhe a 0) — scroll segue normal. */}
+          <div className="flex-1 md:hidden" aria-hidden />
+
           {regularServers.map((s, i) => (
             <ServerIcon
               key={s.id}
@@ -375,11 +380,16 @@ export default function Sidebar({ activeChannelId, onSelectChannel }: SidebarPro
                   />
                   <Constellation
                     name={activeServer.name}
+                    stars={activeServer._count?.members}
                     className="absolute top-1 right-1 size-14 text-white/35 pointer-events-none"
                   />
                 </>
               ) : (
-                <ConstellationBanner name={activeServer.name} className="w-full h-24" />
+                <ConstellationBanner
+                  name={activeServer.name}
+                  stars={activeServer._count?.members}
+                  className="w-full h-24"
+                />
               )}
 
               {/* Scrim + nome sobre a base do banner */}
@@ -409,11 +419,14 @@ export default function Sidebar({ activeChannelId, onSelectChannel }: SidebarPro
           )}
 
           <div
-            className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-2.5"
+            className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-2.5 flex flex-col"
             onContextMenu={handleChannelAreaContextMenu}
           >
             {channels.length > 0 ? (
-              <>
+              /* max-md:my-auto: lista curta flutua pro centro vertical do
+                 drawer (alcance do polegar) com folgas equilibradas; lista
+                 longa zera as margens e o scroll é normal. Desktop: topo. */
+              <div className="max-md:my-auto">
                 <div className="px-3 mb-1.5">
                   <span className="text-[10px] uppercase tracking-wider text-(--text-3) font-medium">
                     {isGroup ? 'Canais do grupo' : 'Canais'}
@@ -435,7 +448,7 @@ export default function Sidebar({ activeChannelId, onSelectChannel }: SidebarPro
                     userMap={voiceUserMap}
                   />
                 ))}
-              </>
+              </div>
             ) : !activeServer ? (
               <ConstellationEmpty
                 title={servers.length === 0 ? 'Seu céu ainda está vazio' : 'Escolha uma constelação'}
@@ -584,6 +597,7 @@ function ServerIcon({ server, isActive, index, isGroup = false, onClick, onConte
                 {/* Constelação-assinatura atrás das iniciais no default */}
                 <Constellation
                   name={server.name}
+                  stars={server._count?.members}
                   className="absolute inset-0 w-full h-full opacity-40 pointer-events-none"
                 />
                 <span className="relative">

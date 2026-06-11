@@ -53,7 +53,9 @@ export default function RightPanel({ serverId, channelId }: RightPanelProps) {
       {/* Aside fixo à direita — coluna inline em desktop, drawer em mobile */}
       <aside
         className={cn(
-          'shrink-0 h-screen-safe border-l border-(--border) bg-(--base) flex flex-col z-50',
+          // md:h-full (não h-screen-safe): no desktop é flex child do shell;
+          // no mobile a altura vem do fixed top-0/bottom-0.
+          'shrink-0 md:h-full border-l border-(--border) bg-(--base) flex flex-col z-50',
           'w-72 sm:w-80',
           // Mobile: drawer fixed à direita; Desktop: estático na flex-row do AppPage
           'fixed top-0 right-0 bottom-0 md:static md:top-auto md:right-auto md:bottom-auto',

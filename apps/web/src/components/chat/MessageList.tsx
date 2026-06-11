@@ -21,8 +21,9 @@ interface MessageListProps {
   serverId?:   string
   // Exposed so AppPage can wire up MessageInput callbacks
   onRegisterOptimistic: (
-    add:    (msg: OptimisticMessage) => void,
-    remove: (id: string) => void
+    add:     (msg: OptimisticMessage) => void,
+    remove:  (id: string) => void,
+    confirm: (optimisticId: string, msg: MessageWithAuthor) => void,
   ) => void
   onReply?: (msg: MessageWithAuthor) => void
 }
@@ -46,9 +47,7 @@ export default function MessageList({
     setOptimisticMsgs((prev) => prev.filter((m) => m.optimisticId !== optimisticId))
   }, [])
 
-  useEffect(() => {
-    onRegisterOptimistic(addOptimistic, removeOptimistic)
-  }, [onRegisterOptimistic, addOptimistic, removeOptimistic])
+  // Registro movido pra depois do handleNewMessage (precisa dele pro confirm)
 
   // Reset optimistic messages when switching channels.
   // Virtualizer cuida do scroll-to-bottom via useLayoutEffect abaixo.
@@ -118,6 +117,17 @@ export default function MessageList({
     })
     setShouldScrollToBottom(true)
   }, [channelId, queryClient])
+
+  // Registra callbacks pro MessageInput (via AppPage). confirm injeta o
+  // clientNonce e reusa handleNewMessage — remoção exata da otimista +
+  // dedup por id (o eco de broadcast que chegar depois vira no-op).
+  useEffect(() => {
+    onRegisterOptimistic(
+      addOptimistic,
+      removeOptimistic,
+      (optimisticId, msg) => handleNewMessage({ ...msg, clientNonce: optimisticId }),
+    )
+  }, [onRegisterOptimistic, addOptimistic, removeOptimistic, handleNewMessage])
 
   // Edit: update matching item in cache, keep position
   const handleMessageEdited = useCallback(

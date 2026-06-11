@@ -7,17 +7,24 @@
  * Cor: herda currentColor — o pai controla via text-(--accent) etc.
  * animated: twinkle sutil de opacidade (compositor-only, barato).
  */
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import { generateConstellation } from '@/lib/constellation'
 
 interface Props {
   name:      string
+  /** 1 estrela por membro (clamp 1–28). Sem isso: 5–9 via hash do nome. */
+  stars?:    number
   className?: string
   animated?: boolean
 }
 
-export function Constellation({ name, className, animated = false }: Props) {
-  const { stars, edges, dust } = useMemo(() => generateConstellation(name), [name])
+// memo: o pai (Sidebar) re-renderiza com presença/unread a cada tick —
+// o SVG só re-gera quando nome ou nº de membros mudam de verdade.
+export const Constellation = memo(function Constellation({ name, stars: starCount, className, animated = false }: Props) {
+  const { stars, edges, dust } = useMemo(
+    () => generateConstellation(name, starCount),
+    [name, starCount],
+  )
 
   return (
     <svg viewBox="0 0 100 100" className={className} aria-hidden>
@@ -56,19 +63,20 @@ export function Constellation({ name, className, animated = false }: Props) {
       ))}
     </svg>
   )
-}
+})
 
 /**
  * ConstellationBanner — banner default de servidor: gradiente do void com
  * a constelação do nome em âmbar. Usado quando não há banner custom.
  */
-export function ConstellationBanner({ name, className }: { name: string; className?: string }) {
+export function ConstellationBanner({ name, stars, className }: { name: string; stars?: number; className?: string }) {
   return (
     <div
-      className={`relative overflow-hidden bg-gradient-to-br from-(--void) via-(--base) to-(--raised) ${className ?? ''}`}
+      className={`relative overflow-hidden bg-linear-to-br from-(--void) via-(--base) to-(--raised) ${className ?? ''}`}
     >
       <Constellation
         name={name}
+        stars={stars}
         animated
         className="absolute inset-0 w-full h-full text-(--accent)"
       />

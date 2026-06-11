@@ -52,11 +52,13 @@ interface DMInputProps {
   onCancelReply?:      () => void
   onOptimisticMessage: (msg: OptimisticMessage) => void
   onOptimisticFailed:  (id: string) => void
+  /** Confirma a otimista pela resposta do POST — não depende do eco socket */
+  onOptimisticConfirmed?: (optimisticId: string, msg: MessageWithAuthor) => void
 }
 
 export default function DMInput({
   conversationId, otherUser, replyingTo, onCancelReply,
-  onOptimisticMessage, onOptimisticFailed,
+  onOptimisticMessage, onOptimisticFailed, onOptimisticConfirmed,
 }: DMInputProps) {
   const user = useAuthStore((s) => s.user)
   const { startTyping, stopTyping } = useDMTyping(conversationId)
@@ -86,9 +88,11 @@ export default function DMInput({
     } as any
     onOptimisticMessage(optimisticMsg)
     try {
-      await api.post(`/api/dm/${conversationId}/messages`, {
+      const res = await api.post(`/api/dm/${conversationId}/messages`, {
         content: '', attachments: [att], clientNonce: optimisticId,
       })
+      const real = res.data?.data
+      if (real?.id) onOptimisticConfirmed?.(optimisticId, real)
     } catch {
       onOptimisticFailed(optimisticId)
     }
@@ -165,19 +169,21 @@ export default function DMInput({
     onCancelReply?.()
 
     try {
-      await api.post(`/api/dm/${conversationId}/messages`, {
+      const res = await api.post(`/api/dm/${conversationId}/messages`, {
         content:     trimmed,
         attachments: attachmentsToSend.length > 0 ? attachmentsToSend : undefined,
         replyToId:   replyToSnapshot?.id,
         ttlSeconds:  ttlSeconds > 0 ? ttlSeconds : undefined,
         clientNonce: optimisticId,
       })
+      const real = res.data?.data
+      if (real?.id) onOptimisticConfirmed?.(optimisticId, real)
     } catch {
       onOptimisticFailed(optimisticId)
       setContent(trimmed)
       setAttachments(attachmentsToSend)
     }
-  }, [content, attachments, user, conversationId, replyingTo, onCancelReply, onOptimisticMessage, onOptimisticFailed, ttlSeconds])
+  }, [content, attachments, user, conversationId, replyingTo, onCancelReply, onOptimisticMessage, onOptimisticFailed, onOptimisticConfirmed, ttlSeconds])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }

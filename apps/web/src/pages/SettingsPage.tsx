@@ -82,7 +82,7 @@ export default function SettingsPage() {
   const currentLabel = NAV.find((n) => n.id === section)?.label ?? 'Configurações'
 
   return (
-    <main className="flex-1 flex h-screen-safe font-(family-name:--font-body) overflow-hidden">
+    <main className="flex-1 flex h-full font-(family-name:--font-body) overflow-hidden">
       {/* ─── Sidebar (md+) ─── */}
       <aside className="hidden md:flex w-60 lg:w-64 shrink-0 border-r border-(--border) bg-(--raised)/30 flex-col overflow-hidden">
         <header className="h-14 px-4 flex items-center gap-2 border-b border-(--border) shrink-0">

@@ -90,7 +90,7 @@ export default function InvitePage() {
             <Reveal delay={0.02}>
               {server.bannerUrl
                 ? <img src={server.bannerUrl} alt="" referrerPolicy="no-referrer" className="w-full h-28 object-cover" />
-                : <ConstellationBanner name={server.name} className="w-full h-28" />}
+                : <ConstellationBanner name={server.name} stars={server._count.members} className="w-full h-28" />}
             </Reveal>
           )}
 

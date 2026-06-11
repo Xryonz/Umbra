@@ -65,13 +65,19 @@ export default function DMPage() {
   useEffect(() => { setReplyingTo(null) }, [activeDM?.conversationId])
 
   // Optimistic message callbacks (same pattern as AppPage)
-  const addOptimisticRef    = useRef<((msg: OptimisticMessage) => void) | null>(null)
-  const removeOptimisticRef = useRef<((id: string) => void) | null>(null)
+  const addOptimisticRef     = useRef<((msg: OptimisticMessage) => void) | null>(null)
+  const removeOptimisticRef  = useRef<((id: string) => void) | null>(null)
+  const confirmOptimisticRef = useRef<((id: string, msg: MessageWithAuthor) => void) | null>(null)
 
   const handleRegisterOptimistic = useCallback(
-    (add: (msg: OptimisticMessage) => void, remove: (id: string) => void) => {
-      addOptimisticRef.current    = add
-      removeOptimisticRef.current = remove
+    (
+      add:     (msg: OptimisticMessage) => void,
+      remove:  (id: string) => void,
+      confirm: (id: string, msg: MessageWithAuthor) => void,
+    ) => {
+      addOptimisticRef.current     = add
+      removeOptimisticRef.current  = remove
+      confirmOptimisticRef.current = confirm
     }, []
   )
   const handleOptimisticMessage = useCallback((msg: OptimisticMessage) => {
@@ -79,6 +85,9 @@ export default function DMPage() {
   }, [])
   const handleOptimisticFailed = useCallback((id: string) => {
     removeOptimisticRef.current?.(id)
+  }, [])
+  const handleOptimisticConfirmed = useCallback((id: string, msg: MessageWithAuthor) => {
+    confirmOptimisticRef.current?.(id, msg)
   }, [])
 
   return (
@@ -181,6 +190,7 @@ export default function DMPage() {
               onCancelReply={() => setReplyingTo(null)}
               onOptimisticMessage={handleOptimisticMessage}
               onOptimisticFailed={handleOptimisticFailed}
+              onOptimisticConfirmed={handleOptimisticConfirmed}
             />
           </>
         ) : (

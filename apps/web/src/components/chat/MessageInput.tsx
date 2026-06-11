@@ -53,12 +53,15 @@ interface MessageInputProps {
   onCancelReply?:      () => void
   onOptimisticMessage: (msg: OptimisticMessage) => void
   onOptimisticFailed:  (id: string) => void
+  /** Confirma a otimista pelo ACK/response — NÃO depende do eco de
+      broadcast (que se perde em reconexão e deixava "enviando" preso). */
+  onOptimisticConfirmed?: (optimisticId: string, msg: MessageWithAuthor) => void
 }
 
 export default function MessageInput({
   channelId, channelName, serverId,
   replyingTo, onCancelReply,
-  onOptimisticMessage, onOptimisticFailed,
+  onOptimisticMessage, onOptimisticFailed, onOptimisticConfirmed,
 }: MessageInputProps) {
   const user    = useAuthStore((s) => s.user)
   const [content,     setContent]     = useState('')
@@ -101,9 +104,11 @@ export default function MessageInput({
     onOptimisticMessage(optimisticMsg)
     probeStart(optimisticId)
     try {
-      await api.post(`/api/channels/${channelId}/messages`, {
+      const res = await api.post(`/api/channels/${channelId}/messages`, {
         content: '', attachments: [att], clientNonce: optimisticId,
       })
+      const real = res.data?.data
+      if (real?.id) onOptimisticConfirmed?.(optimisticId, real)
     } catch {
       onOptimisticFailed(optimisticId)
     }
@@ -291,19 +296,26 @@ export default function MessageInput({
 
     if (canFastSend) {
       const r = await fastSendText(channelId, trimmed, optimisticId)
-      if (r.ok) return
+      if (r.ok) {
+        // Confirma direto pelo ACK (msg real) — o eco de broadcast vira
+        // redundância idempotente em vez de única fonte de verdade.
+        if (r.msg) onOptimisticConfirmed?.(optimisticId, r.msg as MessageWithAuthor)
+        return
+      }
       // Fast path falhou (timeout/disconnect/erro) → cai pro HTTP abaixo.
       // Mantém optimistic visível; HTTP completa ou marca como failed.
     }
 
     try {
-      await api.post(`/api/channels/${channelId}/messages`, {
+      const res = await api.post(`/api/channels/${channelId}/messages`, {
         content:     trimmed,
         replyToId:   replyToSnapshot?.id,
         attachments: attachmentsToSend.length > 0 ? attachmentsToSend : undefined,
         clientNonce: optimisticId,
         ttlSeconds:  ttlSeconds > 0 ? ttlSeconds : undefined,
       })
+      const real = res.data?.data
+      if (real?.id) onOptimisticConfirmed?.(optimisticId, real)
     } catch (err: any) {
       if (err?.response?.status !== 403) {
         onOptimisticFailed(optimisticId)

@@ -43,18 +43,29 @@ function mulberry32(seed: number): () => number {
   }
 }
 
-const MARGIN   = 14   // borda do viewBox sem estrelas
-const MIN_DIST = 20   // distância mínima entre estrelas
+const MARGIN    = 14  // borda do viewBox sem estrelas
+const MIN_DIST  = 14  // distância mínima entre estrelas (FIXA — ver abaixo)
+const MAX_STARS = 28  // teto visual: além disso o céu satura no 100×100
 
-export function generateConstellation(name: string): Constellation {
+/**
+ * @param starCount 1 estrela POR MEMBRO da constelação (clamp 1–28).
+ *   Crescimento ESTÁVEL: semente e MIN_DIST fixos ⇒ a sequência de
+ *   candidatos é idêntica ⇒ +1 membro só ADICIONA uma estrela — as
+ *   existentes não se movem (quem entra É a estrela nova).
+ *   Sem starCount: 5–9 estrelas derivadas do hash (fallback).
+ */
+export function generateConstellation(name: string, starCount?: number): Constellation {
   const seed = hashSeed(name.trim().toLowerCase() || 'astra')
   const rnd  = mulberry32(seed)
 
   // ── Estrelas ────────────────────────────────────────────────
-  const count = 5 + Math.floor(rnd() * 5) // 5–9
+  // Modo membro NÃO consome rnd() pro count — preserva a sequência.
+  const count = starCount !== undefined
+    ? Math.max(1, Math.min(MAX_STARS, Math.floor(starCount)))
+    : 5 + Math.floor(rnd() * 5)
   const stars: Star[] = []
   let attempts = 0
-  while (stars.length < count && attempts < 200) {
+  while (stars.length < count && attempts < 600) {
     attempts++
     const x = MARGIN + rnd() * (100 - MARGIN * 2)
     const y = MARGIN + rnd() * (100 - MARGIN * 2)
@@ -86,10 +97,13 @@ export function generateConstellation(name: string): Constellation {
   }
 
   // ── Poeira de fundo ─────────────────────────────────────────
+  // PRNG PRÓPRIO (seed derivada): a poeira não muda quando o número de
+  // estrelas cresce — só a estrela nova aparece, o resto do céu é o mesmo.
+  const dustRnd = mulberry32(seed ^ 0x9e3779b9)
   const dust: Dust[] = []
-  const dustCount = 6 + Math.floor(rnd() * 5)
+  const dustCount = 6 + Math.floor(dustRnd() * 5)
   for (let i = 0; i < dustCount; i++) {
-    dust.push({ x: rnd() * 100, y: rnd() * 100, r: 0.3 + rnd() * 0.3 })
+    dust.push({ x: dustRnd() * 100, y: dustRnd() * 100, r: 0.3 + dustRnd() * 0.3 })
   }
 
   return { stars, edges, dust }

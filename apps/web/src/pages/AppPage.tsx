@@ -72,17 +72,24 @@ function ChannelView() {
     }
   }, [locationState, activeChannel?.id])
 
-  const addOptimisticRef    = useRef<((msg: OptimisticMessage) => void) | null>(null)
-  const removeOptimisticRef = useRef<((id: string) => void) | null>(null)
+  const addOptimisticRef     = useRef<((msg: OptimisticMessage) => void) | null>(null)
+  const removeOptimisticRef  = useRef<((id: string) => void) | null>(null)
+  const confirmOptimisticRef = useRef<((id: string, msg: MessageWithAuthor) => void) | null>(null)
 
   const handleRegisterOptimistic = useCallback(
-    (add: (m: OptimisticMessage) => void, remove: (id: string) => void) => {
-      addOptimisticRef.current    = add
-      removeOptimisticRef.current = remove
+    (
+      add:     (m: OptimisticMessage) => void,
+      remove:  (id: string) => void,
+      confirm: (id: string, msg: MessageWithAuthor) => void,
+    ) => {
+      addOptimisticRef.current     = add
+      removeOptimisticRef.current  = remove
+      confirmOptimisticRef.current = confirm
     }, []
   )
-  const handleOptimisticMessage = useCallback((m: OptimisticMessage) => addOptimisticRef.current?.(m), [])
-  const handleOptimisticFailed  = useCallback((id: string) => removeOptimisticRef.current?.(id), [])
+  const handleOptimisticMessage   = useCallback((m: OptimisticMessage) => addOptimisticRef.current?.(m), [])
+  const handleOptimisticFailed    = useCallback((id: string) => removeOptimisticRef.current?.(id), [])
+  const handleOptimisticConfirmed = useCallback((id: string, msg: MessageWithAuthor) => confirmOptimisticRef.current?.(id, msg), [])
 
   // When a mention notification is clicked, navigate to the mentioned channel
   const handleMentionNavigate = useCallback((channelId: string, channelName: string, serverId: string) => {
@@ -244,6 +251,7 @@ function ChannelView() {
                 onCancelReply={() => setReplyingTo(null)}
                 onOptimisticMessage={handleOptimisticMessage}
                 onOptimisticFailed={handleOptimisticFailed}
+                onOptimisticConfirmed={handleOptimisticConfirmed}
               />
             </ServerEmojiProvider>
           </>
