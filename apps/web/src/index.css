@@ -816,3 +816,17 @@ body {
   transition: none !important;
   animation-play-state: paused !important;
 }
+
+/* Teclado ABERTO (lib/native.ts seta .astra-kb-open): a tab bar some e o
+   respiro dela zera. Sem isso sobrava uma faixa de ~70px entre o composer
+   e o teclado — norma WhatsApp/Discord é digitar com composer colado. */
+.astra-kb-open .astra-bottom-nav { display: none; }
+.astra-kb-open .astra-shell { padding-bottom: 0; }
+
+/* Morph mic↔seta do botão de ação do composer (key troca → re-anima).
+   Compositor-only: transform + opacity. */
+@keyframes astraMorphIn {
+  from { transform: scale(0.4) rotate(-30deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg);     opacity: 1; }
+}
+.anim-morph-in { animation: astraMorphIn 0.22s var(--ease-spring) both; }

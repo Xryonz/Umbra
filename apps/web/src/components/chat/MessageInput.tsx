@@ -18,6 +18,7 @@ const GifPicker       = lazy(() => import('@/components/chat/GifPicker'))
 const FullEmojiPicker = lazy(() => import('@/components/chat/FullEmojiPicker'))
 const PollComposer    = lazy(() => import('@/components/chat/PollComposer'))
 import { useAudioRecorder } from '@/hooks/useAudioRecorder'
+import { useHoldToRecord } from '@/hooks/useHoldToRecord'
 import { probeStart } from '@/lib/latencyProbe'
 import { RecordingDisplay } from '@/components/chat/RecordingDisplay'
 import { ComposerActionsMenu } from '@/components/chat/ComposerActionsMenu'
@@ -77,7 +78,8 @@ export default function MessageInput({
   const [ttlSeconds,  setTtlSeconds]  = useState<number>(0)
 
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  const fileRef  = useRef<HTMLInputElement>(null)
+  const fileRef   = useRef<HTMLInputElement>(null)
+  const cameraRef = useRef<HTMLInputElement>(null)
   const { startTyping, stopTyping } = useTyping(channelId)
 
   // ─── Audio recorder ──────────────────────────────────────────
@@ -336,6 +338,13 @@ export default function MessageInput({
   }
 
   const canSend = (content.trim().length > 0 || attachments.length > 0) && !muted && !uploading
+
+  // Norma WhatsApp (mobile): campo vazio = botão vira MIC (segura grava,
+  // solta envia, desliza ← cancela); com texto, morpha pra seta de enviar.
+  // isHolding mantém o micMode durante a gravação segurada — sem isso os
+  // touch handlers desmontariam no meio do gesto.
+  const holdMic = useHoldToRecord(recorder)
+  const micMode = (!canSend && !recorder.isActive && !muted) || holdMic.isHolding
   const mins    = Math.ceil(muteSeconds / 60)
 
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
@@ -376,6 +385,17 @@ export default function MessageInput({
         ref={fileRef}
         type="file"
         multiple
+        className="hidden"
+        onChange={(e) => { if (e.target.files?.length) handleFiles(e.target.files) }}
+      />
+
+      {/* Hidden camera input — item "Câmera" do "+" abre direto a câmera
+          (capture=environment). Só mobile usa; no desktop nem aparece. */}
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
         className="hidden"
         onChange={(e) => { if (e.target.files?.length) handleFiles(e.target.files) }}
       />
@@ -546,8 +566,12 @@ export default function MessageInput({
           pequena. Desktop mantém o ring suave. */}
       <div
         className={cn(
-          'flex items-center gap-0.5 sm:gap-1.5 min-h-12 sm:min-h-10 px-1.5 sm:px-2 py-1 rounded-xl border border-(--border-mid) bg-(--raised)/40',
-          'focus-within:border-(--accent) focus-within:bg-(--raised)/60 sm:focus-within:ring-2 sm:focus-within:ring-(--accent)/15',
+          // Mobile: pill cheia (rounded-3xl) com glow âmbar suave no focus —
+          // é o componente mais usado do app, merece presença. Desktop
+          // mantém o retângulo discreto de sempre.
+          'flex items-center gap-0.5 sm:gap-1.5 min-h-12 sm:min-h-10 px-1.5 sm:px-2 py-1 rounded-3xl sm:rounded-xl border border-(--border-mid) bg-(--raised)/55 sm:bg-(--raised)/40',
+          'focus-within:border-(--accent)/80 sm:focus-within:border-(--accent) focus-within:bg-(--raised)/75 sm:focus-within:bg-(--raised)/60',
+          'focus-within:shadow-[0_6px_22px_-10px_var(--accent-glow)] sm:focus-within:shadow-none sm:focus-within:ring-2 sm:focus-within:ring-(--accent)/15',
           'transition-[border-color,background-color,box-shadow] duration-200',
           muted && 'opacity-50',
         )}
@@ -580,9 +604,11 @@ export default function MessageInput({
           onTtlChange={(s) => setTtlSeconds(s)}
           onAttach={() => fileRef.current?.click()}
           attachDisabled={muted || uploading || attachments.length >= MAX_ATTACHMENTS}
+          onCamera={() => cameraRef.current?.click()}
         />
 
-        {/* Mic trigger — só visível quando idle. Recording UI assume a row. */}
+        {/* Mic trigger desktop — no mobile o mic é o botão de ação à direita
+            (hold-to-record). Só visível quando idle; recording UI assume a row. */}
         {recorder.state === 'idle' && (
           <button
             type="button"
@@ -591,7 +617,7 @@ export default function MessageInput({
             aria-label="Gravar áudio"
             title="Gravar áudio"
             className={cn(
-              'shrink-0 size-11 sm:size-9 grid place-items-center cursor-pointer transition-colors',
+              'shrink-0 size-9 hidden sm:grid place-items-center cursor-pointer transition-colors',
               muted ? 'text-(--text-3) opacity-50 cursor-default' : 'text-(--text-3) hover:text-(--accent)',
             )}
           >
@@ -641,8 +667,10 @@ export default function MessageInput({
           />
         )}
 
-        {/* Durante gravação: Cancel + Pause/Resume ao lado da seta */}
-        {recorder.isActive && recorder.state !== 'uploading' && (
+        {/* Durante gravação: Cancel + Pause/Resume ao lado da seta.
+            No hold-to-record (isHolding) NÃO aparecem — soltar envia,
+            deslizar pra esquerda cancela. */}
+        {recorder.isActive && recorder.state !== 'uploading' && !holdMic.isHolding && (
           <>
             <button
               type="button"
@@ -665,30 +693,50 @@ export default function MessageInput({
           </>
         )}
 
-        {/* Send — única ação de "enviar" (texto OU áudio).
-            Durante gravação, manda recorder.finalize() (stop + upload). */}
+        {/* Botão de ação — norma WhatsApp no mobile: campo vazio = MIC
+            (segura grava · solta envia · desliza ← cancela); com texto,
+            morpha pra seta. Desktop: seta sempre (mic próprio à esquerda). */}
         <motion.button
           onClick={() => {
+            if (holdMic.consumeTouch()) return // touch já tratou (hold/tap)
             if (recorder.isActive && recorder.state !== 'uploading') {
               recorder.finalize()
-            } else {
+            } else if (canSend) {
               send()
             }
           }}
-          disabled={recorder.state === 'uploading' ? true : (!recorder.isActive && !canSend)}
-          aria-label="Enviar"
-          title="Enviar (Enter)"
-          whileTap={(canSend || recorder.isActive) ? { scale: 0.85, rotate: -8 } : undefined}
-          whileHover={(canSend || recorder.isActive) ? { scale: 1.08 } : undefined}
+          onTouchStart={micMode ? holdMic.onTouchStart : undefined}
+          onTouchMove={micMode ? holdMic.onTouchMove : undefined}
+          onTouchEnd={micMode ? holdMic.onTouchEnd : undefined}
+          onTouchCancel={micMode ? holdMic.onTouchCancel : undefined}
+          disabled={recorder.state === 'uploading'}
+          aria-label={micMode ? 'Segure para gravar áudio' : 'Enviar'}
+          title={micMode ? 'Segure para gravar' : 'Enviar (Enter)'}
+          animate={{ scale: holdMic.isHolding ? 1.18 : 1 }}
+          whileTap={!micMode && (canSend || recorder.isActive) ? { scale: 0.85, rotate: -8 } : undefined}
+          whileHover={!micMode && (canSend || recorder.isActive) ? { scale: 1.08 } : undefined}
           transition={{ type: 'spring', stiffness: 600, damping: 22 }}
           className={cn(
             'shrink-0 size-11 sm:size-8 rounded-full flex items-center justify-center transition-[background-color,box-shadow] duration-200',
-            (canSend || (recorder.isActive && recorder.state !== 'uploading'))
-              ? 'bg-(--accent) text-(--text-inv) hover:shadow-[0_4px_16px_var(--accent-glow)] cursor-pointer'
-              : 'bg-(--raised) text-(--text-3) cursor-default',
+            holdMic.isHolding
+              ? 'bg-(--danger) text-white shadow-[0_4px_18px_var(--accent-glow)]'
+              : micMode
+                ? 'bg-(--accent)/12 text-(--accent) cursor-pointer sm:bg-(--raised) sm:text-(--text-3) sm:cursor-default'
+                : (canSend || (recorder.isActive && recorder.state !== 'uploading'))
+                  ? 'bg-(--accent) text-(--text-inv) hover:shadow-[0_4px_16px_var(--accent-glow)] cursor-pointer'
+                  : 'bg-(--raised) text-(--text-3) cursor-default',
           )}
         >
-          <ArrowRight className="size-4 sm:size-3.5" strokeWidth={2} />
+          <span key={micMode ? 'mic' : 'send'} className="anim-morph-in inline-flex">
+            {micMode ? (
+              <>
+                <Mic className="size-5 sm:hidden" strokeWidth={2} />
+                <ArrowRight className="hidden sm:block size-3.5" strokeWidth={2} />
+              </>
+            ) : (
+              <ArrowRight className="size-4 sm:size-3.5" strokeWidth={2} />
+            )}
+          </span>
         </motion.button>
       </div>
     </div>

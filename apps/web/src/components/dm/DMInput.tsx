@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils'
 import type { MessageWithAuthor, Attachment } from '@astra/types'
 import { ComposerActionsMenu } from '@/components/chat/ComposerActionsMenu'
 import { useAudioRecorder } from '@/hooks/useAudioRecorder'
+import { useHoldToRecord } from '@/hooks/useHoldToRecord'
 import { RecordingDisplay } from '@/components/chat/RecordingDisplay'
 import { useDMTyping } from '@/hooks/useSocket'
 
@@ -68,8 +69,9 @@ export default function DMInput({
   const [emojiOpen,   setEmojiOpen]   = useState(false)
   const [ttlSeconds,  setTtlSeconds]  = useState<number>(0)
 
-  const inputRef = useRef<HTMLTextAreaElement>(null)
-  const fileRef  = useRef<HTMLInputElement>(null)
+  const inputRef  = useRef<HTMLTextAreaElement>(null)
+  const fileRef   = useRef<HTMLInputElement>(null)
+  const cameraRef = useRef<HTMLInputElement>(null)
 
   // ─── Audio recorder (mesmo padrão do MessageInput) ───────────
   const recorder = useAudioRecorder(async (att) => {
@@ -208,6 +210,11 @@ export default function DMInput({
 
   const canSend = (content.trim().length > 0 || attachments.length > 0) && !uploading
 
+  // Mesmo padrão do MessageInput: mobile com campo vazio = botão vira MIC
+  // (hold-to-record); com texto, morpha pra seta de enviar.
+  const holdMic = useHoldToRecord(recorder)
+  const micMode = (!canSend && !recorder.isActive) || holdMic.isHolding
+
   return (
     <div
       className="px-3 sm:px-6 pt-2 pb-safe shrink-0 relative bg-(--void)"
@@ -229,6 +236,15 @@ export default function DMInput({
           </div>
         </div>
       )}
+
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => { if (e.target.files?.length) handleFiles(e.target.files) }}
+      />
 
       <input
         ref={fileRef}
@@ -327,8 +343,10 @@ export default function DMInput({
 
       {/* Composer row — pill input com radius suave */}
       <div className={cn(
-        'flex items-center gap-0.5 sm:gap-1.5 min-h-12 sm:min-h-10 px-1.5 sm:px-2 py-1 rounded-xl border border-(--border-mid) bg-(--raised)/40',
-        'focus-within:border-(--accent) focus-within:bg-(--raised)/60 sm:focus-within:ring-2 sm:focus-within:ring-(--accent)/15',
+        // Pill mobile com glow âmbar no focus (mesmo redesign do MessageInput)
+        'flex items-center gap-0.5 sm:gap-1.5 min-h-12 sm:min-h-10 px-1.5 sm:px-2 py-1 rounded-3xl sm:rounded-xl border border-(--border-mid) bg-(--raised)/55 sm:bg-(--raised)/40',
+        'focus-within:border-(--accent)/80 sm:focus-within:border-(--accent) focus-within:bg-(--raised)/75 sm:focus-within:bg-(--raised)/60',
+        'focus-within:shadow-[0_6px_22px_-10px_var(--accent-glow)] sm:focus-within:shadow-none sm:focus-within:ring-2 sm:focus-within:ring-(--accent)/15',
         'transition-[border-color,background-color,box-shadow] duration-200',
       )}>
         {/* Attach — desktop only; no mobile vive dentro do "+" (extras) */}
@@ -357,16 +375,17 @@ export default function DMInput({
           hidePoll
           onAttach={() => fileRef.current?.click()}
           attachDisabled={uploading || attachments.length >= MAX_ATTACHMENTS}
+          onCamera={() => cameraRef.current?.click()}
         />
 
-        {/* Mic trigger — só visível idle. Recording UI assume a row. */}
+        {/* Mic trigger desktop — no mobile o mic é o botão de ação (hold). */}
         {recorder.state === 'idle' && (
           <button
             type="button"
             onClick={() => recorder.start()}
             aria-label="Gravar áudio"
             title="Gravar áudio"
-            className="shrink-0 size-11 sm:size-9 grid place-items-center cursor-pointer text-(--text-3) hover:text-(--accent) transition-colors"
+            className="shrink-0 size-9 hidden sm:grid place-items-center cursor-pointer text-(--text-3) hover:text-(--accent) transition-colors"
           >
             <Mic className="size-4" />
           </button>
@@ -411,8 +430,9 @@ export default function DMInput({
           />
         )}
 
-        {/* Cancel + Pause/Resume ao lado da seta durante gravação */}
-        {recorder.isActive && recorder.state !== 'uploading' && (
+        {/* Cancel + Pause/Resume ao lado da seta durante gravação.
+            No hold-to-record não aparecem (solta envia, desliza ← cancela). */}
+        {recorder.isActive && recorder.state !== 'uploading' && !holdMic.isHolding && (
           <>
             <button
               type="button"
@@ -437,26 +457,45 @@ export default function DMInput({
 
         <motion.button
           onClick={() => {
+            if (holdMic.consumeTouch()) return
             if (recorder.isActive && recorder.state !== 'uploading') {
               recorder.finalize()
-            } else {
+            } else if (canSend) {
               send()
             }
           }}
-          disabled={recorder.state === 'uploading' ? true : (!recorder.isActive && !canSend)}
-          aria-label="Enviar"
-          title="Enviar (Enter)"
-          whileTap={(canSend || recorder.isActive) ? { scale: 0.85, rotate: -8 } : undefined}
-          whileHover={(canSend || recorder.isActive) ? { scale: 1.08 } : undefined}
+          onTouchStart={micMode ? holdMic.onTouchStart : undefined}
+          onTouchMove={micMode ? holdMic.onTouchMove : undefined}
+          onTouchEnd={micMode ? holdMic.onTouchEnd : undefined}
+          onTouchCancel={micMode ? holdMic.onTouchCancel : undefined}
+          disabled={recorder.state === 'uploading'}
+          aria-label={micMode ? 'Segure para gravar áudio' : 'Enviar'}
+          title={micMode ? 'Segure para gravar' : 'Enviar (Enter)'}
+          animate={{ scale: holdMic.isHolding ? 1.18 : 1 }}
+          whileTap={!micMode && (canSend || recorder.isActive) ? { scale: 0.85, rotate: -8 } : undefined}
+          whileHover={!micMode && (canSend || recorder.isActive) ? { scale: 1.08 } : undefined}
           transition={{ type: 'spring', stiffness: 600, damping: 22 }}
           className={cn(
             'shrink-0 size-11 sm:size-8 rounded-full flex items-center justify-center transition-[background-color,box-shadow] duration-200',
-            (canSend || (recorder.isActive && recorder.state !== 'uploading'))
-              ? 'bg-(--accent) text-(--text-inv) hover:shadow-[0_4px_16px_var(--accent-glow)] cursor-pointer'
-              : 'bg-(--raised) text-(--text-3) cursor-default',
+            holdMic.isHolding
+              ? 'bg-(--danger) text-white shadow-[0_4px_18px_var(--accent-glow)]'
+              : micMode
+                ? 'bg-(--accent)/12 text-(--accent) cursor-pointer sm:bg-(--raised) sm:text-(--text-3) sm:cursor-default'
+                : (canSend || (recorder.isActive && recorder.state !== 'uploading'))
+                  ? 'bg-(--accent) text-(--text-inv) hover:shadow-[0_4px_16px_var(--accent-glow)] cursor-pointer'
+                  : 'bg-(--raised) text-(--text-3) cursor-default',
           )}
         >
-          <ArrowRight className="size-4 sm:size-3.5" strokeWidth={2} />
+          <span key={micMode ? 'mic' : 'send'} className="anim-morph-in inline-flex">
+            {micMode ? (
+              <>
+                <Mic className="size-5 sm:hidden" strokeWidth={2} />
+                <ArrowRight className="hidden sm:block size-3.5" strokeWidth={2} />
+              </>
+            ) : (
+              <ArrowRight className="size-4 sm:size-3.5" strokeWidth={2} />
+            )}
+          </span>
         </motion.button>
       </div>
     </div>

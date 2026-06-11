@@ -1,7 +1,7 @@
 /**
- * useSwipeReply — arrasta a mensagem pra ESQUERDA pra responder (norma
- * Telegram). A direita ficou pro gesto de abrir o drawer (norma Discord),
- * então os dois não brigam.
+ * useSwipeReply — arrasta a mensagem pra DIREITA pra responder (norma
+ * WhatsApp). A esquerda ficou pro gesto de abrir o drawer, então os
+ * dois não brigam.
  *
  * Performance: transform aplicado direto no DOM (zero re-render por frame,
  * compositor-only). Haptic ao armar o limiar; dispara onTrigger ao soltar.
@@ -49,12 +49,12 @@ export function useSwipeReply(onTrigger: (() => void) | undefined) {
     // Decide a direção UMA vez, nos primeiros px — depois trava
     if (horizontal.current === null) {
       if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return
-      horizontal.current = Math.abs(dx) > Math.abs(dy) * 1.4 && dx < 0
+      horizontal.current = Math.abs(dx) > Math.abs(dy) * 1.4 && dx > 0
       if (!horizontal.current) { start.current = null; return }
     }
-    const pull = Math.max(dx, -MAX_PULL)
+    const pull = Math.min(dx, MAX_PULL)
     if (el.current) el.current.style.transform = `translateX(${pull}px)`
-    const isArmed = -dx >= THRESHOLD
+    const isArmed = dx >= THRESHOLD
     if (isArmed && !armed.current) void hapticLight()
     armed.current = isArmed
   }, [onTrigger])

@@ -326,17 +326,21 @@ export default function Sidebar({ activeChannelId, onSelectChannel }: SidebarPro
           {/* spacer empurra toggle pro fundo */}
           <div className="flex-1" />
 
-          <StripButton
-            title={collapsed ? 'Expandir painel' : 'Esconder painel'}
-            icon={collapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
-            onClick={() => {
-              setCollapsed((c) => {
-                const next = !c
-                localStorage.setItem('astra-sidebar-collapsed', next ? '1' : '0')
-                return next
-              })
-            }}
-          />
+          {/* Colapsar painel é conceito de desktop — no mobile o drawer
+              inteiro fecha, então o botão só confundia. */}
+          <div className="hidden md:contents">
+            <StripButton
+              title={collapsed ? 'Expandir painel' : 'Esconder painel'}
+              icon={collapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
+              onClick={() => {
+                setCollapsed((c) => {
+                  const next = !c
+                  localStorage.setItem('astra-sidebar-collapsed', next ? '1' : '0')
+                  return next
+                })
+              }}
+            />
+          </div>
         </div>
 
         {/* ── Channel panel ─────────────────────────────────── */}

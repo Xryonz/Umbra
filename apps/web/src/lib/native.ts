@@ -66,9 +66,11 @@ export async function initNativeApp(): Promise<void> {
     const root = document.documentElement
     const freeze   = () => root.classList.add('astra-kb-resizing')
     const unfreeze = () => root.classList.remove('astra-kb-resizing')
-    void Keyboard.addListener('keyboardWillShow', freeze)
+    // astra-kb-open: tab bar some + respiro zera enquanto digita (CSS) —
+    // sem isso sobrava uma faixa morta entre o composer e o teclado.
+    void Keyboard.addListener('keyboardWillShow', () => { freeze(); root.classList.add('astra-kb-open') })
     void Keyboard.addListener('keyboardDidShow', unfreeze)
-    void Keyboard.addListener('keyboardWillHide', freeze)
+    void Keyboard.addListener('keyboardWillHide', () => { freeze(); root.classList.remove('astra-kb-open') })
     void Keyboard.addListener('keyboardDidHide', unfreeze)
   } catch { /* plugin ausente */ }
 

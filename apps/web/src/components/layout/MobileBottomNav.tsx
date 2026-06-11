@@ -116,7 +116,8 @@ export default function MobileBottomNav() {
     <nav
       aria-label="Navegação mobile"
       className={cn(
-        'md:hidden fixed bottom-0 left-0 right-0 z-30',
+        // astra-bottom-nav: escondida via CSS quando o teclado abre (.astra-kb-open)
+        'astra-bottom-nav md:hidden fixed bottom-0 left-0 right-0 z-30',
         // Fundo SÓLIDO: sem backdrop-blur (elemento permanente repintava o
         // blur a cada frame de scroll) e sem /98 (texto passando por baixo
         // ficava visível através das tabs).

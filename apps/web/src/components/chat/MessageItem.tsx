@@ -463,7 +463,7 @@ function MessageItemImpl({
     if (!isPending && !isBot) setShowMobileActions(true)
   }, { ms: 480 })
 
-  // Swipe pra esquerda = responder (norma Telegram; direita é do drawer)
+  // Swipe pra direita = responder (norma WhatsApp; esquerda é do drawer)
   const swipe = useSwipeReply(
     onReply && !isPending ? () => onReply(message) : undefined,
   )

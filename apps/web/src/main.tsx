@@ -8,6 +8,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { initSentry } from '@/lib/sentry'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { migrateLocalStorage } from '@/lib/migrateLocalStorage'
+import { setupOfflineCache } from '@/lib/offlineCache'
 import { initNativeApp } from '@/lib/native'
 
 migrateLocalStorage()  // rebrand umbra-* → astra-*
@@ -53,6 +54,10 @@ const queryClient = new QueryClient({
     },
   },
 })
+
+// Offline-first leve: servers + DMs hidratam do localStorage no boot
+// (shell instantâneo sem rede) e revalidam por trás.
+setupOfflineCache(queryClient)
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

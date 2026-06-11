@@ -8,7 +8,7 @@
  * durações — escolher um valor fecha o painel e seta ttlSeconds.
  */
 import { useEffect, useRef, useState } from 'react'
-import { Sparkle, Smile, BarChart3, Timer, ChevronLeft, X, Check, Paperclip } from 'lucide-react'
+import { Sparkle, Smile, BarChart3, Timer, ChevronLeft, X, Check, Paperclip, Camera } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface ComposerActionsMenuProps {
@@ -23,6 +23,8 @@ export interface ComposerActionsMenuProps {
   /** Anexar arquivo — só aparece no mobile (desktop tem o clipe exposto) */
   onAttach?:    () => void
   attachDisabled?: boolean
+  /** Abrir a câmera direto (input capture) — só mobile */
+  onCamera?:    () => void
 }
 
 const TTL_OPTIONS = [
@@ -42,7 +44,7 @@ function formatTtl(secs: number) {
 
 export function ComposerActionsMenu({
   disabled, ttlSeconds, onGif, onEmoji, onPoll, onTtlChange, hidePoll,
-  onAttach, attachDisabled,
+  onAttach, attachDisabled, onCamera,
 }: ComposerActionsMenuProps) {
   const [open,     setOpen]     = useState(false)
   const [subMenu,  setSubMenu]  = useState<'ttl' | null>(null)
@@ -142,6 +144,14 @@ export function ComposerActionsMenu({
                 {/* Mobile-only (sm:hidden): no desktop o clipe fica exposto
                     na row; aqui ele vive dentro do "+" — composer Discord-style
                     libera largura pro campo de texto. */}
+                {onCamera && !attachDisabled && (
+                  <MenuItem
+                    className="sm:hidden"
+                    icon={<Camera className="size-4" />}
+                    label="Câmera"
+                    onClick={() => { onCamera(); close() }}
+                  />
+                )}
                 {onAttach && !attachDisabled && (
                   <MenuItem
                     className="sm:hidden"

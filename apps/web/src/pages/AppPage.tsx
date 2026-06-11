@@ -16,6 +16,10 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useUIStore } from '@/store/uiStore'
 import { hapticLight } from '@/lib/haptics'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '@/lib/api'
+import { useUnread } from '@/hooks/useUnread'
+import type { ServerWithChannels } from '@astra/types'
 import { usePresenceListener } from '@/hooks/usePresence'
 import { useInAppNotifications } from '@/hooks/useInAppNotifications'
 import MessageList from '@/components/chat/MessageList'
@@ -84,6 +88,39 @@ function ChannelView() {
   const handleMentionNavigate = useCallback((channelId: string, channelName: string, serverId: string) => {
     setActiveChannel({ id: channelId, name: channelName, serverId })
   }, [])
+
+  // Atalhos desktop (norma Discord): Alt+↑/↓ navega entre canais de texto
+  // do servidor atual; Esc marca o canal como lido. Mesma query/cache do
+  // Sidebar — custo zero de rede.
+  const navigate = useViewTransitionNavigate()
+  const unread   = useUnread()
+  const { data: kbServers } = useQuery<ServerWithChannels[]>({
+    queryKey: ['servers'],
+    queryFn: async () => (await api.get('/api/servers')).data.data,
+    staleTime: 5 * 60_000,
+  })
+  useEffect(() => {
+    if (!activeChannel) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.altKey && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+        const chans = kbServers
+          ?.find((s) => s.id === activeChannel.serverId)
+          ?.channels?.filter((c) => c.type === 'TEXT') ?? []
+        const idx = chans.findIndex((c) => c.id === activeChannel.id)
+        if (idx === -1 || chans.length < 2) return
+        e.preventDefault()
+        const dir  = e.key === 'ArrowDown' ? 1 : -1
+        const next = chans[(idx + dir + chans.length) % chans.length]
+        navigate('/app', { state: { id: next.id, name: next.name, serverId: activeChannel.serverId } })
+      }
+      // Esc marca lido — só quando não há overlay (Radix fecha com Esc antes)
+      if (e.key === 'Escape' && !document.querySelector('[role="dialog"][data-state="open"]')) {
+        unread.markRead(activeChannel.id)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [activeChannel, kbServers, navigate, unread])
 
   return (
     <div className="flex-1 flex min-w-0 h-full min-h-0 overflow-hidden">
@@ -306,8 +343,8 @@ export default function AppPage() {
     return () => window.removeEventListener('keydown', onKey)
   }, [toggleCommandPalette])
 
-  // Mobile: swipe pra DIREITA abre o drawer de constelações (norma Discord).
-  // Esquerda ficou pro swipe-to-reply das mensagens — sem briga de gesto.
+  // Mobile: swipe pra ESQUERDA abre o drawer de constelações.
+  // Direita ficou pro swipe-to-reply das mensagens — sem briga de gesto.
   // Listeners passivos + leitura via getState(): zero re-render por toque.
   useEffect(() => {
     if (!window.matchMedia('(pointer: coarse)').matches) return
@@ -326,8 +363,8 @@ export default function AppPage() {
       const t  = e.touches[0]
       const dx = t.clientX - start.x
       const dy = t.clientY - start.y
-      if (dx < 0 || Math.abs(dy) > 48) { start = null; return } // scroll/reply
-      if (dx > 64 && dx > Math.abs(dy) * 1.8) {
+      if (dx > 0 || Math.abs(dy) > 48) { start = null; return } // scroll/reply
+      if (dx < -64 && -dx > Math.abs(dy) * 1.8) {
         start = null
         useUIStore.getState().openMobileSidebar()
         hapticLight()
@@ -342,7 +379,7 @@ export default function AppPage() {
   }, [])
 
   return (
-    <div className="flex h-screen-safe overflow-hidden font-(family-name:--font-body) pb-14 md:pb-0">
+    <div className="astra-shell flex h-screen-safe overflow-hidden font-(family-name:--font-body) pb-14 md:pb-0">
       {/* A11y skip-link: invisível até receber foco (Tab). Pula sidebar/header
           pra usuários de teclado/screen reader irem direto pro conteúdo. */}
       <a

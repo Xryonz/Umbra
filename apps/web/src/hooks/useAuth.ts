@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api, setStoredRefreshToken, clearStoredRefreshToken, getStoredRefreshToken } from '@/lib/api'
 import { connectSocket, disconnectSocket } from '@/lib/socket'
+import { clearOfflineCache } from '@/lib/offlineCache'
 import { completeOAuthLogin } from '@/lib/oauth'
 import { useAuthStore } from '@/store/authStore'
 import type { LoginInput, RegisterInput } from '@astra/types'
@@ -36,6 +37,7 @@ export function useAuth() {
       // Mesmo com erro, limpa estado local
     } finally {
       clearStoredRefreshToken()
+      clearOfflineCache()
       disconnectSocket()
       clearAuth()
       navigate('/login')

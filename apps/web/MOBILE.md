@@ -182,13 +182,27 @@ Falta só a conta Firebase (grátis):
 ### Fila (pendentes)
 - **Quick reply na notificação**: exige token de auth acessível do lado
   nativo (BroadcastReceiver + RemoteInput). Fazer depois do FCM validado.
+- **Call em background como "ligação"**: foreground service Android +
+  notificação persistente (estilo WhatsApp) pra call de áudio sobreviver
+  fora do app. Trabalho nativo — sessão dedicada com teste em device.
+- **Mensagens offline (IndexedDB)**: hoje só servers + lista de DMs
+  persistem (localStorage, ver lib/offlineCache.ts). Histórico de mensagens
+  pede IndexedDB pelo volume.
+- **Convite com preview (OG tags)**: link de convite mostrar card bonito
+  no WhatsApp/Telegram exige HTML server-side por convite (rota na API
+  que redireciona pro site).
 
 ### Feitos (jun/2026)
 - Rota deep `/app/dm/:id` — push, shortcut e reload abrem a conversa certa
 - Shortcuts dinâmicos (3 DMs recentes no long-press do ícone)
 - Composer mobile: anexo dentro do "+" (Discord-style)
-- Swipe ESQUERDA na mensagem = responder (Telegram) · swipe DIREITA = abre
-  drawer (Discord) — direções opostas pra não brigar
+- Swipe DIREITA na mensagem = responder (WhatsApp) · swipe ESQUERDA = abre
+  drawer — direções opostas pra não brigar
+- Hold-to-record no mic (segura grava · solta envia · desliza ← cancela);
+  botão de ação morpha mic↔seta conforme o campo tem texto (WhatsApp)
+- Câmera direto no "+" (input capture, sem plugin)
+- Teclado aberto: tab bar some + respiro zera (.astra-kb-open)
+- Offline leve: servers + DMs hidratam do localStorage no boot
 - Sino do canal vive no menu "⋯" no mobile
 - Drawer para acima da tab bar (norma Discord); rows de canal 44px
 
