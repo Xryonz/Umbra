@@ -786,6 +786,10 @@ body {
   .pr-safe   { padding-right:  max(0px, env(safe-area-inset-right)); }
   .bottom-safe { bottom: max(1rem, env(safe-area-inset-bottom)); }
   .right-safe  { right:  max(1rem, env(safe-area-inset-right)); }
+  /* Altura total da MobileBottomNav (h-14 + pb-safe). Drawer/backdrop usam
+     isto pra parar ACIMA da tab bar — norma Discord: ela continua visível
+     e clicável com o drawer aberto. */
+  .above-mobile-nav { bottom: calc(3.5rem + max(1rem, env(safe-area-inset-bottom))); }
 
   /* svh = small viewport height (resolve bug do 100vh com barra do browser mobile) */
   .h-screen-safe { height: 100svh; }

@@ -15,12 +15,13 @@ import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { useUIStore } from '@/store/uiStore'
+import { hapticLight } from '@/lib/haptics'
 import { usePresenceListener } from '@/hooks/usePresence'
 import { useInAppNotifications } from '@/hooks/useInAppNotifications'
 import MessageList from '@/components/chat/MessageList'
 import MessageInput from '@/components/chat/MessageInput'
 import TypingIndicator from '@/components/chat/TypingIndicator'
-import ChannelNotifButton from '@/components/chat/ChannelNotifButton'
+import ChannelNotifButton, { ChannelNotifMenuItems } from '@/components/chat/ChannelNotifButton'
 import { ServerEmojiProvider } from '@/hooks/useServerEmojis'
 import MentionBanner from '@/components/chat/MentionBanner'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
@@ -162,6 +163,8 @@ function ChannelView() {
                     <DropdownMenuItem onSelect={() => setBookmarksOpen(true)}>
                       <Bookmark className="size-3.5" /> Mensagens salvas
                     </DropdownMenuItem>
+                    {/* Notificações do canal — no desktop é o sino próprio */}
+                    <ChannelNotifMenuItems channelId={activeChannel.id} />
                   </DropdownMenuContent>
                 </DropdownMenu>
 
@@ -302,6 +305,41 @@ export default function AppPage() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [toggleCommandPalette])
+
+  // Mobile: swipe pra DIREITA abre o drawer de constelações (norma Discord).
+  // Esquerda ficou pro swipe-to-reply das mensagens — sem briga de gesto.
+  // Listeners passivos + leitura via getState(): zero re-render por toque.
+  useEffect(() => {
+    if (!window.matchMedia('(pointer: coarse)').matches) return
+    let start: { x: number; y: number } | null = null
+    const onStart = (e: TouchEvent) => {
+      start = null
+      if (window.innerWidth >= 768) return
+      if (useUIStore.getState().mobileSidebarOpen) return
+      // Áreas com gesto/scroll próprio não disputam
+      if ((e.target as Element).closest('pre, input, textarea, [role="dialog"]')) return
+      const t = e.touches[0]
+      start = { x: t.clientX, y: t.clientY }
+    }
+    const onMove = (e: TouchEvent) => {
+      if (!start) return
+      const t  = e.touches[0]
+      const dx = t.clientX - start.x
+      const dy = t.clientY - start.y
+      if (dx < 0 || Math.abs(dy) > 48) { start = null; return } // scroll/reply
+      if (dx > 64 && dx > Math.abs(dy) * 1.8) {
+        start = null
+        useUIStore.getState().openMobileSidebar()
+        hapticLight()
+      }
+    }
+    window.addEventListener('touchstart', onStart, { passive: true })
+    window.addEventListener('touchmove',  onMove,  { passive: true })
+    return () => {
+      window.removeEventListener('touchstart', onStart)
+      window.removeEventListener('touchmove',  onMove)
+    }
+  }, [])
 
   return (
     <div className="flex h-screen-safe overflow-hidden font-(family-name:--font-body) pb-14 md:pb-0">

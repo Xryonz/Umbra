@@ -327,18 +327,18 @@ export default function DMInput({
 
       {/* Composer row — pill input com radius suave */}
       <div className={cn(
-        'flex items-center gap-1.5 min-h-10 px-2 py-1 rounded-xl border border-(--border-mid) bg-(--raised)/40',
-        'focus-within:border-(--accent) focus-within:bg-(--raised)/60 focus-within:ring-2 focus-within:ring-(--accent)/15',
+        'flex items-center gap-0.5 sm:gap-1.5 min-h-12 sm:min-h-10 px-1.5 sm:px-2 py-1 rounded-xl border border-(--border-mid) bg-(--raised)/40',
+        'focus-within:border-(--accent) focus-within:bg-(--raised)/60 sm:focus-within:ring-2 sm:focus-within:ring-(--accent)/15',
         'transition-[border-color,background-color,box-shadow] duration-200',
       )}>
-        {/* Attach */}
+        {/* Attach — desktop only; no mobile vive dentro do "+" (extras) */}
         <button
           onClick={() => fileRef.current?.click()}
           disabled={uploading || attachments.length >= MAX_ATTACHMENTS}
           aria-label="Anexar arquivo"
           title="Anexar arquivo"
           className={cn(
-            'shrink-0 size-9 sm:size-8 flex items-center justify-center cursor-pointer transition-colors duration-200',
+            'shrink-0 size-8 hidden sm:flex items-center justify-center cursor-pointer transition-colors duration-200',
             uploading || attachments.length >= MAX_ATTACHMENTS
               ? 'text-(--text-3) opacity-50 cursor-default'
               : 'text-(--text-3) hover:text-(--accent)',
@@ -355,6 +355,8 @@ export default function DMInput({
           onPoll={() => { /* não-op em DM — passamos handler vazio */ }}
           onTtlChange={(s) => setTtlSeconds(s)}
           hidePoll
+          onAttach={() => fileRef.current?.click()}
+          attachDisabled={uploading || attachments.length >= MAX_ATTACHMENTS}
         />
 
         {/* Mic trigger — só visível idle. Recording UI assume a row. */}
@@ -364,7 +366,7 @@ export default function DMInput({
             onClick={() => recorder.start()}
             aria-label="Gravar áudio"
             title="Gravar áudio"
-            className="shrink-0 size-10 sm:size-9 grid place-items-center cursor-pointer text-(--text-3) hover:text-(--accent) transition-colors"
+            className="shrink-0 size-11 sm:size-9 grid place-items-center cursor-pointer text-(--text-3) hover:text-(--accent) transition-colors"
           >
             <Mic className="size-4" />
           </button>
@@ -401,7 +403,7 @@ export default function DMInput({
             placeholder={attachments.length > 0 ? 'Mensagem opcional…' : `Mensagem para ${otherUser.displayName}`}
             rows={1}
             className="
-              flex-1 bg-transparent text-foreground text-sm leading-5
+              flex-1 bg-transparent text-foreground text-base sm:text-sm leading-6 sm:leading-5
               border-0 outline-none resize-none max-h-32 px-1 py-1
               placeholder:text-(--text-3) placeholder:font-normal
               font-(family-name:--font-body)
@@ -417,7 +419,7 @@ export default function DMInput({
               onClick={() => recorder.cancel()}
               aria-label="Cancelar gravação"
               title="Cancelar"
-              className="shrink-0 size-10 sm:size-9 grid place-items-center text-(--text-3) hover:text-(--danger) transition-colors cursor-pointer"
+              className="shrink-0 size-11 sm:size-9 grid place-items-center text-(--text-3) hover:text-(--danger) transition-colors cursor-pointer"
             >
               <X className="size-4" />
             </button>
@@ -426,7 +428,7 @@ export default function DMInput({
               onClick={() => recorder.state === 'paused' ? recorder.resume() : recorder.pause()}
               aria-label={recorder.state === 'paused' ? 'Retomar gravação' : 'Pausar gravação'}
               title={recorder.state === 'paused' ? 'Retomar' : 'Pausar'}
-              className="shrink-0 size-10 sm:size-9 grid place-items-center text-(--accent) hover:opacity-80 transition-opacity cursor-pointer"
+              className="shrink-0 size-11 sm:size-9 grid place-items-center text-(--accent) hover:opacity-80 transition-opacity cursor-pointer"
             >
               {recorder.state === 'paused' ? <Play className="size-4" /> : <Square className="size-4" fill="currentColor" />}
             </button>
@@ -448,7 +450,7 @@ export default function DMInput({
           whileHover={(canSend || recorder.isActive) ? { scale: 1.08 } : undefined}
           transition={{ type: 'spring', stiffness: 600, damping: 22 }}
           className={cn(
-            'shrink-0 size-10 sm:size-8 rounded-full flex items-center justify-center transition-[background-color,box-shadow] duration-200',
+            'shrink-0 size-11 sm:size-8 rounded-full flex items-center justify-center transition-[background-color,box-shadow] duration-200',
             (canSend || (recorder.isActive && recorder.state !== 'uploading'))
               ? 'bg-(--accent) text-(--text-inv) hover:shadow-[0_4px_16px_var(--accent-glow)] cursor-pointer'
               : 'bg-(--raised) text-(--text-3) cursor-default',

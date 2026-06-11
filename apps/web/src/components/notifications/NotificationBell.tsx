@@ -274,6 +274,8 @@ function NotificationRow({
 }
 
 function navigateTo(n: NotificationItem) {
-  const url = n.type === 'dm' ? '/app/dm' : '/app'
+  const url = n.type === 'dm'
+    ? (n.payload?.conversationId ? `/app/dm/${n.payload.conversationId}` : '/app/dm')
+    : '/app'
   if (window.location.pathname !== url) window.location.href = url
 }

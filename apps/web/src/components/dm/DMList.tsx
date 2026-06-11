@@ -13,6 +13,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Trash2, MailOpen, BellOff, MessageCircle } from 'lucide-react'
 import { api, resolveApiUrl } from '@/lib/api'
 import { getSocket } from '@/lib/socket'
+import { setDmShortcuts } from '@/lib/native'
 import { usePresenceStore } from '@/store/presenceStore'
 import { memo } from 'react'
 import { format, isToday, isYesterday } from 'date-fns'
@@ -66,6 +67,13 @@ export default function DMList({ activeDMId, onSelectDM }: DMListProps) {
     queryFn:  async () => (await api.get('/api/dm')).data.data,
     staleTime: 20_000,
   })
+
+  // App nativo: long-press no ícone mostra as 3 DMs mais recentes
+  useEffect(() => {
+    setDmShortcuts(conversations.slice(0, 3).map((c) => ({
+      id: c.id, title: c.otherUser.displayName,
+    })))
+  }, [conversations])
 
   // Real-time: invalida lista quando chega DM nova
   useEffect(() => {

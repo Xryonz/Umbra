@@ -221,7 +221,9 @@ export default function Sidebar({ activeChannelId, onSelectChannel }: SidebarPro
       {mobileOpen && (
         <div
           onClick={closeMobile}
-          className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          // Para acima da tab bar (above-mobile-nav) — norma Discord: as tabs
+          // continuam visíveis e clicáveis com o drawer aberto.
+          className="md:hidden fixed top-0 left-0 right-0 above-mobile-nav z-40 bg-black/60 backdrop-blur-sm"
           style={{ animation: 'fadeIn 0.36s ease-out 0.08s both' }}
         />
       )}
@@ -233,7 +235,8 @@ export default function Sidebar({ activeChannelId, onSelectChannel }: SidebarPro
           'md:relative md:translate-x-0 md:transition-none md:h-full md:w-auto',
           // Mobile: drawer slide-in da esquerda. 85vw garante que o flex row
           // (strip 64px + canais ~) preenche a largura sem cortar/sobra.
-          'fixed top-0 left-0 bottom-0 w-[85vw] max-w-105 transition-transform',
+          // above-mobile-nav: termina acima da tab bar (norma Discord).
+          'fixed top-0 left-0 above-mobile-nav w-[85vw] max-w-105 transition-transform border-r border-(--border)',
           mobileOpen
             ? 'translate-x-0 duration-320 [transition-timing-function:cubic-bezier(0.34,1.32,0.55,1)]'
             : '-translate-x-full md:translate-x-0 duration-260 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]',
@@ -707,7 +710,9 @@ function ChannelButton({
       className={cn(
         // Transição explícita de cores em 150ms (era transition-all 300ms —
         // seleção de canal parecia lenta) + press tátil rápido.
-        'group w-full flex items-center gap-2.5 px-3 py-1.5 border-l-2 rounded-r-lg cursor-pointer text-left relative transition-[color,background-color,border-color,transform] duration-150 active:scale-[0.98] active:duration-100 disabled:opacity-50 disabled:cursor-not-allowed',
+        // min-h-11 mobile: row de canal com 44px de alvo (norma touch);
+        // desktop volta pra densidade compacta.
+        'group w-full flex items-center gap-2.5 px-3 py-1.5 min-h-11 md:min-h-0 border-l-2 rounded-r-lg cursor-pointer text-left relative transition-[color,background-color,border-color,transform] duration-150 active:scale-[0.98] active:duration-100 disabled:opacity-50 disabled:cursor-not-allowed',
         isActive || inThis
           ? 'border-(--accent) bg-(--accent-dim)'
           : 'border-transparent bg-transparent hover:border-(--border-bright) hover:bg-(--raised)/40'

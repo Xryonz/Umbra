@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft } from 'lucide-react'
+import { api } from '@/lib/api'
 import DMList from '@/components/dm/DMList'
 import MobileAvatarTrigger from '@/components/layout/MobileAvatarTrigger'
 import DMChat from '@/components/dm/DMChat'
@@ -25,6 +27,7 @@ interface ActiveDM {
 
 export default function DMPage() {
   const location   = useLocation()
+  const navigate   = useNavigate()
   const navState   = location.state as ActiveDM | null
   const [activeDM, setActiveDM] = useState<ActiveDM | null>(navState ?? null)
   const [replyingTo, setReplyingTo] = useState<MessageWithAuthor | null>(null)
@@ -36,6 +39,27 @@ export default function DMPage() {
       setActiveDM(navState)
     }
   }, [navState?.conversationId])
+
+  // Deep link /app/dm/:id — push notification, app shortcut ou reload
+  // abrem direto a conversa certa. Resolve o otherUser pela mesma query
+  // (e cache) do DMList. URL é a fonte canônica: voltar pra /app/dm sem
+  // state fecha a conversa (back do Android volta pra lista).
+  const deepId = (useParams()['*'] ?? '').split('/')[0] || null
+  const { data: deepConvs } = useQuery<{ id: string; otherUser: ActiveDM['otherUser'] }[]>({
+    queryKey: ['dm-list'],
+    queryFn:  async () => (await api.get('/api/dm')).data.data,
+    staleTime: 20_000,
+    enabled: !!deepId && deepId !== activeDM?.conversationId,
+  })
+  useEffect(() => {
+    if (!deepId) {
+      if (!navState && activeDM) setActiveDM(null)
+      return
+    }
+    if (deepId === activeDM?.conversationId) return
+    const conv = deepConvs?.find((c) => c.id === deepId)
+    if (conv) setActiveDM({ conversationId: conv.id, otherUser: conv.otherUser })
+  }, [deepId, deepConvs, navState, activeDM?.conversationId])
 
   // Reset reply ao trocar de conversa
   useEffect(() => { setReplyingTo(null) }, [activeDM?.conversationId])
@@ -84,7 +108,11 @@ export default function DMPage() {
 
         <DMList
           activeDMId={activeDM?.conversationId ?? null}
-          onSelectDM={setActiveDM}
+          onSelectDM={(dm) => {
+            setActiveDM(dm)
+            // URL canônica /app/dm/:id — back do Android volta pra lista
+            navigate(`/app/dm/${dm.conversationId}`, { state: dm })
+          }}
         />
       </aside>
 
@@ -105,7 +133,7 @@ export default function DMPage() {
             >
               {/* Back-to-list mobile-only */}
               <button
-                onClick={() => setActiveDM(null)}
+                onClick={() => { setActiveDM(null); navigate('/app/dm') }}
                 className="md:hidden size-11 flex items-center justify-center border border-(--border) text-(--text-2) hover:border-(--accent) hover:text-(--accent) transition-[color,border-color,transform] duration-150 active:scale-95 cursor-pointer shrink-0"
                 aria-label="Voltar à lista"
               >

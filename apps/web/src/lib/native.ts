@@ -4,6 +4,32 @@ import { completeOAuthLogin } from '@/lib/oauth'
 /** true quando rodando dentro do app Capacitor (Android/iOS). */
 export const isNative = Capacitor.isNativePlatform()
 
+const STATIC_SHORTCUTS = [
+  { id: 'dms',     title: 'Sussurros', description: 'Mensagens diretas' },
+  { id: 'friends', title: 'Amigos',    description: 'Sua constelação de amigos' },
+]
+
+/**
+ * App Shortcuts dinâmicos: long-press no ícone mostra as DMs recentes
+ * acima dos atalhos fixos. Chamado quando a lista de conversas carrega
+ * (DMList). No-op no web / se o plugin faltar.
+ */
+export function setDmShortcuts(dms: { id: string; title: string }[]): void {
+  if (!isNative || dms.length === 0) return
+  void import('@capawesome/capacitor-app-shortcuts')
+    .then(({ AppShortcuts }) => AppShortcuts.set({
+      shortcuts: [
+        ...dms.slice(0, 3).map((d) => ({
+          id: `dm-${d.id}`,
+          title: d.title,
+          description: 'Conversa recente',
+        })),
+        ...STATIC_SHORTCUTS,
+      ],
+    }))
+    .catch(() => {})
+}
+
 /**
  * Liga os listeners nativos do app. Chamado uma vez no main.tsx.
  * No web é no-op — e os plugins são dynamic import, então o bundle
@@ -47,18 +73,15 @@ export async function initNativeApp(): Promise<void> {
   } catch { /* plugin ausente */ }
 
   // App Shortcuts: long-press no ícone do Astra → atalhos diretos.
-  // Estáticos por enquanto (dinâmicos com DMs recentes exigem deep route).
+  // Estáticos no boot; setDmShortcuts() injeta DMs recentes quando a
+  // lista carrega (ids dm-<convId> → rota deep /app/dm/:id).
   try {
     const { AppShortcuts } = await import('@capawesome/capacitor-app-shortcuts')
-    await AppShortcuts.set({
-      shortcuts: [
-        { id: 'dms',     title: 'Sussurros', description: 'Mensagens diretas' },
-        { id: 'friends', title: 'Amigos',    description: 'Sua constelação de amigos' },
-      ],
-    })
+    await AppShortcuts.set({ shortcuts: STATIC_SHORTCUTS })
     await AppShortcuts.addListener('click', ({ shortcutId }) => {
       if (shortcutId === 'dms')     window.location.href = '/app/dm'
       if (shortcutId === 'friends') window.location.href = '/app/friends'
+      if (shortcutId.startsWith('dm-')) window.location.href = `/app/dm/${shortcutId.slice(3)}`
     })
   } catch { /* plugin ausente */ }
 

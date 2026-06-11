@@ -5,6 +5,7 @@
 import { Bell, BellOff, AtSign, Check } from 'lucide-react'
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuSeparator, DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu'
 import {
   useChannelNotifPref, useSetChannelNotifPref,
@@ -34,7 +35,9 @@ export default function ChannelNotifButton({ channelId }: Props) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className="size-11 sm:size-8 flex items-center justify-center text-(--text-3) hover:text-(--accent) transition-colors cursor-pointer"
+          // Desktop only — no mobile estas opções vivem dentro do menu "⋯"
+          // (ChannelNotifMenuItems), deixando o header com 2 ações.
+          className="size-8 hidden md:flex items-center justify-center text-(--text-3) hover:text-(--accent) transition-colors cursor-pointer"
           aria-label={title}
           title={title}
         >
@@ -58,5 +61,32 @@ export default function ChannelNotifButton({ channelId }: Props) {
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
+  )
+}
+
+/**
+ * Itens planos pro menu "⋯" do header mobile (submenu aninhado é ruim no
+ * touch). Renderiza separador + label + as 3 opções com check no modo atual.
+ * Deve viver dentro de um <DropdownMenuContent>.
+ */
+export function ChannelNotifMenuItems({ channelId }: Props) {
+  const current = useChannelNotifPref(channelId)
+  const set     = useSetChannelNotifPref()
+  return (
+    <>
+      <DropdownMenuSeparator />
+      <DropdownMenuLabel>Notificações</DropdownMenuLabel>
+      {OPTIONS.map((o) => (
+        <DropdownMenuItem
+          key={o.id}
+          onSelect={() => { set.mutate({ channelId, mode: o.id }) }}
+          className="flex items-center gap-3"
+        >
+          <span className="text-(--text-3)">{o.icon}</span>
+          <span className="flex-1">{o.label}</span>
+          {current === o.id && <Check className="size-3.5 text-(--accent)" />}
+        </DropdownMenuItem>
+      ))}
+    </>
   )
 }

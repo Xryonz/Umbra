@@ -559,7 +559,9 @@ export default function MessageInput({
           aria-label="Anexar arquivo"
           title="Anexar arquivo"
           className={cn(
-            'shrink-0 size-10 sm:size-8 flex items-center justify-center cursor-pointer transition-colors duration-200',
+            // hidden sm:flex — no mobile o anexo vive dentro do "+" (extras),
+            // Discord-style: menos botões disputando largura com o textarea.
+            'shrink-0 size-8 hidden sm:flex items-center justify-center cursor-pointer transition-colors duration-200',
             muted || uploading || attachments.length >= MAX_ATTACHMENTS
               ? 'text-(--text-3) opacity-50 cursor-default'
               : 'text-(--text-3) hover:text-(--accent)',
@@ -568,7 +570,7 @@ export default function MessageInput({
           <Paperclip className="size-4" />
         </button>
 
-        {/* Menu de extras: GIF / Emoji / Enquete / Mensagem efêmera */}
+        {/* Menu de extras: Anexo (mobile) / GIF / Emoji / Enquete / Efêmera */}
         <ComposerActionsMenu
           disabled={muted}
           ttlSeconds={ttlSeconds}
@@ -576,6 +578,8 @@ export default function MessageInput({
           onEmoji={() => setEmojiOpen(true)}
           onPoll={() => setPollOpen(true)}
           onTtlChange={(s) => setTtlSeconds(s)}
+          onAttach={() => fileRef.current?.click()}
+          attachDisabled={muted || uploading || attachments.length >= MAX_ATTACHMENTS}
         />
 
         {/* Mic trigger — só visível quando idle. Recording UI assume a row. */}

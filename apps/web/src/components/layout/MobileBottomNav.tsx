@@ -54,7 +54,9 @@ interface Tab {
 export default function MobileBottomNav() {
   const navigate         = useViewTransitionNavigate()
   const location         = useLocation()
-  const openSidebar      = useUIStore((s) => s.openMobileSidebar)
+  const sidebarOpen      = useUIStore((s) => s.mobileSidebarOpen)
+  const toggleSidebar    = useUIStore((s) => s.toggleMobileSidebar)
+  const closeSidebar     = useUIStore((s) => s.closeMobileSidebar)
   const setMoreOpen      = useUIStore((s) => s.setMobileMoreOpen)
 
   // Unread no sino — o header mobile não tem mais o NotificationBell,
@@ -64,27 +66,30 @@ export default function MobileBottomNav() {
 
   const path = location.pathname
 
+  // Norma Discord: a tab bar convive com o drawer (que para acima dela).
+  // Toda ação de tab fecha o drawer antes — sem isso ele ficava aberto
+  // por cima da página nova.
   const tabs: Tab[] = [
     {
       id: 'constellations',
       label: 'Constelações',
       icon: <ConstellationIcon className="size-5" />,
-      onClick: () => openSidebar(),
-      active: false, // gerenciado pelo state do sidebar separadamente
+      onClick: () => toggleSidebar(),
+      active: sidebarOpen,
     },
     {
       id: 'stars',
       label: 'Estrelas',
       icon: <Sparkles className="size-5" />,
-      onClick: () => navigate('/app/dm'),
-      active: path.startsWith('/app/dm'),
+      onClick: () => { closeSidebar(); navigate('/app/dm') },
+      active: !sidebarOpen && path.startsWith('/app/dm'),
     },
     {
       id: 'friends',
       label: 'Amigos',
       icon: <Users className="size-5" />,
-      onClick: () => navigate('/app/friends'),
-      active: path.startsWith('/app/friends'),
+      onClick: () => { closeSidebar(); navigate('/app/friends') },
+      active: !sidebarOpen && path.startsWith('/app/friends'),
     },
     {
       id: 'notif',
@@ -92,6 +97,7 @@ export default function MobileBottomNav() {
       icon: <Bell className="size-5" />,
       onClick: () => {
         // Abre o MobileNotificationsSheet (montado no AppPage) via custom event
+        closeSidebar()
         window.dispatchEvent(new Event('astra:open-notifications'))
       },
       active: false,
@@ -101,7 +107,7 @@ export default function MobileBottomNav() {
       id: 'more',
       label: 'Mais',
       icon: <MoreHorizontal className="size-5" />,
-      onClick: () => setMoreOpen(true),
+      onClick: () => { closeSidebar(); setMoreOpen(true) },
       active: false,
     },
   ]
@@ -111,10 +117,10 @@ export default function MobileBottomNav() {
       aria-label="Navegação mobile"
       className={cn(
         'md:hidden fixed bottom-0 left-0 right-0 z-30',
-        // Sem backdrop-blur: elemento PERMANENTE repintava o blur a cada
-        // frame de scroll por baixo. bg /98 é visualmente idêntico ao
-        // /95+blur e custa zero. Sheets/modais (efêmeros) mantêm blur.
-        'border-t border-(--border) bg-(--base)/98',
+        // Fundo SÓLIDO: sem backdrop-blur (elemento permanente repintava o
+        // blur a cada frame de scroll) e sem /98 (texto passando por baixo
+        // ficava visível através das tabs).
+        'border-t border-(--border) bg-(--base)',
         'pb-safe',
       )}
     >

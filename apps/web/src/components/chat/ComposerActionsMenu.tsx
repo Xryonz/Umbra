@@ -8,7 +8,7 @@
  * durações — escolher um valor fecha o painel e seta ttlSeconds.
  */
 import { useEffect, useRef, useState } from 'react'
-import { Sparkle, Smile, BarChart3, Timer, ChevronLeft, X, Check } from 'lucide-react'
+import { Sparkle, Smile, BarChart3, Timer, ChevronLeft, X, Check, Paperclip } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface ComposerActionsMenuProps {
@@ -20,6 +20,9 @@ export interface ComposerActionsMenuProps {
   onTtlChange:  (secs: number) => void
   /** Esconde item "Enquete" — usado no DMInput (DM 1:1 não tem polls) */
   hidePoll?:    boolean
+  /** Anexar arquivo — só aparece no mobile (desktop tem o clipe exposto) */
+  onAttach?:    () => void
+  attachDisabled?: boolean
 }
 
 const TTL_OPTIONS = [
@@ -39,6 +42,7 @@ function formatTtl(secs: number) {
 
 export function ComposerActionsMenu({
   disabled, ttlSeconds, onGif, onEmoji, onPoll, onTtlChange, hidePoll,
+  onAttach, attachDisabled,
 }: ComposerActionsMenuProps) {
   const [open,     setOpen]     = useState(false)
   const [subMenu,  setSubMenu]  = useState<'ttl' | null>(null)
@@ -135,6 +139,17 @@ export function ComposerActionsMenu({
                 <span className="ed-marg">— Extras</span>
               </header>
               <div className="flex flex-col">
+                {/* Mobile-only (sm:hidden): no desktop o clipe fica exposto
+                    na row; aqui ele vive dentro do "+" — composer Discord-style
+                    libera largura pro campo de texto. */}
+                {onAttach && !attachDisabled && (
+                  <MenuItem
+                    className="sm:hidden"
+                    icon={<Paperclip className="size-4" />}
+                    label="Anexar arquivo"
+                    onClick={() => { onAttach(); close() }}
+                  />
+                )}
                 <MenuItem
                   icon={<span className="font-mono text-[10px] font-bold tracking-wider">GIF</span>}
                   label="Procurar GIF"
@@ -176,7 +191,7 @@ export function ComposerActionsMenu({
 }
 
 function MenuItem({
-  icon, label, hint, active, hasChevron, onClick,
+  icon, label, hint, active, hasChevron, onClick, className,
 }: {
   icon: React.ReactNode
   label: string
@@ -184,6 +199,7 @@ function MenuItem({
   active?: boolean
   hasChevron?: boolean
   onClick: () => void
+  className?: string
 }) {
   return (
     <button
@@ -193,6 +209,7 @@ function MenuItem({
         active
           ? 'border-(--accent) bg-(--accent)/5 text-(--accent)'
           : 'border-transparent text-(--text-2) hover:bg-(--raised)/40 hover:text-foreground',
+        className,
       )}
     >
       <span className="size-5 grid place-items-center shrink-0">{icon}</span>

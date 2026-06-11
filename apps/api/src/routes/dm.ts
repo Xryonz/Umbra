@@ -309,7 +309,8 @@ export function createDMRouter(io: SocketServer) {
               push: {
                 title: `Nova DM de ${author?.displayName ?? 'Alguém'}`,
                 body:  content.slice(0, 140),
-                url:   '/app/dm',
+                // Rota deep: clicar na notificação abre a conversa certa
+                url:   `/app/dm/${conversationId}`,
                 tag:   `dm-${conversationId}`,
                 icon:  author?.avatarUrl ?? undefined,
               },

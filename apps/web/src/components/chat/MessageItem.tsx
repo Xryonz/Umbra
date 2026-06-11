@@ -10,6 +10,7 @@ import { api, resolveApiUrl } from '@/lib/api'
 import { useEmojiMap, type ServerEmoji } from '@/hooks/useServerEmojis'
 import { useAuthStore } from '@/store/authStore'
 import { useLongPress } from '@/hooks/useLongPress'
+import { useSwipeReply } from '@/hooks/useSwipeReply'
 import ProfileCard from '@/components/ProfileCard'
 import MessageMobileActions from '@/components/chat/MessageMobileActions'
 import CodeBlock from '@/components/chat/CodeBlock'
@@ -462,6 +463,11 @@ function MessageItemImpl({
     if (!isPending && !isBot) setShowMobileActions(true)
   }, { ms: 480 })
 
+  // Swipe pra esquerda = responder (norma Telegram; direita é do drawer)
+  const swipe = useSwipeReply(
+    onReply && !isPending ? () => onReply(message) : undefined,
+  )
+
   const { author, content, createdAt } = message
   const isBot       = (author as any).isBot ?? (author.username === 'astra_bot' || author.username === 'umbra_bot')
   const isMine      = author.id === currentUser?.id
@@ -666,10 +672,10 @@ function MessageItemImpl({
         }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => { setHovered(false); setShowEmoji(false) }}
-        onTouchStart={longPress.onTouchStart}
-        onTouchMove={longPress.onTouchMove}
-        onTouchEnd={longPress.onTouchEnd}
-        onTouchCancel={longPress.onTouchCancel}
+        onTouchStart={(e) => { longPress.onTouchStart(e); swipe.onTouchStart(e) }}
+        onTouchMove={(e) => { longPress.onTouchMove(e); swipe.onTouchMove(e) }}
+        onTouchEnd={() => { longPress.onTouchEnd(); swipe.onTouchEnd() }}
+        onTouchCancel={() => { longPress.onTouchCancel(); swipe.onTouchCancel() }}
         onContextMenu={(e) => { if (longPress.didFire()) e.preventDefault() }}
       >
         {hovered && !isPending && !isBot && (
