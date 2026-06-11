@@ -20,6 +20,12 @@ coverage/
 # Service account do Firebase (chave privada do FCM) — vive só no
 # Railway (env FIREBASE_SERVICE_ACCOUNT) e nesta máquina.
 *firebase-adminsdk*.json
+# Keystore de release do Android + credenciais: perder = não atualizar
+# mais o app; vazar = qualquer um assina como Astra. FAZER BACKUP fora
+# do repo (drive/pendrive).
+*.keystore
+*.jks
+apps/web/android/keystore.properties
 # Config do app Firebase: não é segredo crítico, mas o repo é PÚBLICO —
 # expor a API key convida abuso de quota. Clone novo: baixar de novo no
 # console Firebase (ver apps/web/MOBILE.md).

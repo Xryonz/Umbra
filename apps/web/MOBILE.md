@@ -209,12 +209,29 @@ Falta só a conta Firebase (grátis):
 ## Live updates (Capgo) — atualizar o app sem Play Store
 
 O bundle web do app pode ser atualizado remotamente (você pusha, todos os
-apps instalados baixam em minutos — sem reenviar pra loja):
+apps instalados baixam em minutos — sem reenviar pra loja).
 
+**Já feito**: plugin `@capgo/capacitor-updater@7` instalado (v7 = Capacitor 7;
+a v8 exige Capacitor 8), `notifyAppReady()` no boot (lib/native.ts),
+`autoUpdate: false` no capacitor.config.ts até a conta existir.
+
+**Falta (precisa de conta)**:
 1. Conta em https://capgo.app (free tier: 1 app)
-2. `npm i @capgo/capacitor-updater -w @astra/web && npx cap sync`
-3. Seguir o onboarding do dashboard (`npx @capgo/cli init`)
-4. A cada release: `npx @capgo/cli bundle upload`
+2. `npx @capgo/cli init` — liga o autoUpdate e configura a key
+3. A cada release: `npx @capgo/cli bundle upload`
+
+## Release assinado (distribuir pra testers / Play Store)
+
+```bash
+cd apps/web/android && ./gradlew assembleRelease
+# APK assinado: app/build/outputs/apk/release/app-release.apk
+```
+
+Assinatura: `android/keystore.properties` + `android/astra-release.keystore`
+(ambos GITIGNORED — repo público). **FAZER BACKUP dos dois fora do repo**
+(drive/pendrive): perder a keystore = impossível atualizar o app publicado.
+Sem os arquivos, o build de release sai sem assinar (clone de terceiros
+continua compilando).
 
 ## Referência
 

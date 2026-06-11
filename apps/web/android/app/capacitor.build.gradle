@@ -20,6 +20,7 @@ dependencies {
     implementation project(':capawesome-capacitor-app-shortcuts')
     implementation project(':capawesome-capacitor-badge')
     implementation project(':capgo-capacitor-native-biometric')
+    implementation project(':capgo-capacitor-updater')
 
 }
 

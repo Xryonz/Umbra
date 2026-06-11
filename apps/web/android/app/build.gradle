@@ -1,5 +1,14 @@
 apply plugin: 'com.android.application'
 
+// Assinatura de release: credenciais em android/keystore.properties
+// (GITIGNORED — repo público). Sem o arquivo, o release builda sem
+// assinatura (clone de terceiros segue compilando normalmente).
+def keystorePropsFile = rootProject.file('keystore.properties')
+def keystoreProps = new Properties()
+if (keystorePropsFile.exists()) {
+    keystoreProps.load(new FileInputStream(keystorePropsFile))
+}
+
 android {
     namespace "app.astra.client"
     compileSdk rootProject.ext.compileSdkVersion
@@ -16,10 +25,26 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        if (keystorePropsFile.exists()) {
+            release {
+                storeFile rootProject.file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
     buildTypes {
         release {
+            // minify OFF de propósito: R8 quebra plugins Capacitor sem
+            // regras proguard dedicadas, e o peso real do app é o bundle
+            // web — ganho não compensa o risco.
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (keystorePropsFile.exists()) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }

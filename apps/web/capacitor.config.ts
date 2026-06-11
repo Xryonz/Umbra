@@ -53,6 +53,12 @@ const config: CapacitorConfig = {
       resize: 'native',
       resizeOnFullScreen: true,
     },
+    // Capgo live updates: OFF até a conta existir (npx @capgo/cli init
+    // liga e configura — ver MOBILE.md). O plugin já vai no APK pra não
+    // precisar reinstalar nos testers quando ativar.
+    CapacitorUpdater: {
+      autoUpdate: false,
+    },
   },
 }
 

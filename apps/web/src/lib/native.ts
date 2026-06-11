@@ -48,6 +48,13 @@ export async function initNativeApp(): Promise<void> {
   // Marca o <html> pra CSS nativo-only (ex: respiro extra no topo do shell)
   document.documentElement.classList.add('astra-native')
 
+  // Capgo: confirma que o bundle abriu são — sem isso, um live update
+  // aplicado sofre rollback automático no boot seguinte. Inofensivo
+  // enquanto autoUpdate está off (capacitor.config.ts).
+  void import('@capgo/capacitor-updater')
+    .then(({ CapacitorUpdater }) => CapacitorUpdater.notifyAppReady())
+    .catch(() => {})
+
   // Fallback do splash nativo (launchAutoHide: false): se o SplashScreen
   // web não montar em 4s (erro de JS, ErrorBoundary), esconde mesmo assim
   // — splash preso é pior que flash de transição. hide() é idempotente.

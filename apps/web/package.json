@@ -33,6 +33,7 @@
     "@capawesome/capacitor-app-shortcuts": "^7.5.0",
     "@capawesome/capacitor-badge": "^7.0.1",
     "@capgo/capacitor-native-biometric": "^7.6.0",
+    "@capgo/capacitor-updater": "^7.45.10",
     "@emoji-mart/data": "^1.2.1",
     "@emoji-mart/react": "^1.1.1",
     "@hookform/resolvers": "^3.6.0",
