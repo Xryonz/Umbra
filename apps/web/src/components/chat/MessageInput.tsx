@@ -396,7 +396,7 @@ export default function MessageInput({
 
   return (
     <div
-      className="px-4 sm:px-6 pt-3 pb-safe shrink-0 relative bg-(--void)"
+      className="astra-composer px-4 sm:px-6 pt-3 pb-safe shrink-0 relative bg-(--void)"
       onDragEnter={(e) => { e.preventDefault(); setDragOver(true) }}
       onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
       onDragLeave={(e) => { if (e.currentTarget === e.target) setDragOver(false) }}

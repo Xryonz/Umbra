@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Users as UsersIcon, Image as ImageIcon, Shield, Crown, Trash2, UserMinus, ChevronDown, Clock, Tag, Plus, Pencil, Check, Ban, ScrollText, Hash, Eye, EyeOff, RefreshCw, UserPlus, Search, Link as LinkIcon, Copy, Smile, X, Loader2 } from 'lucide-react'
+import { ArrowLeft, Users as UsersIcon, Image as ImageIcon, Shield, Crown, Trash2, UserMinus, ChevronDown, Clock, Tag, Plus, Pencil, Check, Ban, Hash, Eye, EyeOff, RefreshCw, UserPlus, Search, Link as LinkIcon, Copy, Smile, X, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { api } from '@/lib/api'
 import { shareInvite } from '@/lib/native'
@@ -246,9 +246,6 @@ export default function ServerSettingsPage() {
             )}
             {perms.has('BAN_MEMBERS') && (
               <TabsTrigger value="bans" className="gap-2"><Ban className="size-3.5" /> Banidos</TabsTrigger>
-            )}
-            {perms.has('MANAGE_SERVER') && (
-              <TabsTrigger value="audit" className="gap-2"><ScrollText className="size-3.5" /> Auditoria</TabsTrigger>
             )}
           </TabsList>
 
@@ -582,13 +579,6 @@ export default function ServerSettingsPage() {
           {perms.has('BAN_MEMBERS') && (
             <TabsContent value="bans" className="space-y-2">
               <BansSection serverId={serverId!} />
-            </TabsContent>
-          )}
-
-          {/* ── AUDIT ─────────────────────── */}
-          {perms.has('MANAGE_SERVER') && (
-            <TabsContent value="audit" className="space-y-2">
-              <AuditSection serverId={serverId!} />
             </TabsContent>
           )}
 
@@ -1175,80 +1165,6 @@ function BansSection({ serverId }: { serverId: string }) {
             <Button variant="secondary" size="sm" onClick={() => unban.mutate(b.userId)} disabled={unban.isPending}>
               Desbanir
             </Button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-// ─── AuditSection ─────────────────────────────────────────────
-interface AuditRow {
-  id: string; action: string; actorId: string; targetId: string|null
-  metadata: Record<string, unknown>; createdAt: string
-  actor: { id: string; username: string; displayName: string; avatarUrl: string|null }
-}
-const ACTION_LABEL: Record<string, string> = {
-  SERVER_UPDATE:  'editou o servidor',
-  CHANNEL_CREATE: 'criou canal',
-  CHANNEL_DELETE: 'deletou canal',
-  MEMBER_KICK:    'expulsou membro',
-  MEMBER_BAN:     'baniu membro',
-  MEMBER_UNBAN:   'desbaniu membro',
-  ROLE_CREATE:    'criou cargo',
-  ROLE_UPDATE:    'editou cargo',
-  ROLE_DELETE:    'deletou cargo',
-  ROLE_ASSIGN:    'atribuiu cargo',
-  ROLE_UNASSIGN:  'removeu cargo',
-  MESSAGE_DELETE: 'apagou mensagem',
-  MESSAGE_PIN:    'fixou mensagem',
-  MESSAGE_UNPIN:  'desfixou mensagem',
-}
-function AuditSection({ serverId }: { serverId: string }) {
-  const { data: logs = [], isLoading } = useQuery<AuditRow[]>({
-    queryKey: ['audit', serverId],
-    queryFn:  async () => (await api.get(`/api/servers/${serverId}/audit?limit=100`)).data.data,
-  })
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2 mb-2">
-        <span className="ed-label">— Auditoria</span>
-        <div className="flex-1 h-px bg-(--border)" />
-        <span className="ed-marg">{logs.length}</span>
-      </div>
-      {isLoading && (
-        <div className="flex items-center gap-2 text-sm text-(--text-3)"><Spinner size={12} /> Carregando…</div>
-      )}
-      {!isLoading && logs.length === 0 && (
-        <p className="text-sm text-(--text-3) italic">Sem ações registradas ainda.</p>
-      )}
-      <ul className="flex flex-col gap-1">
-        {logs.map((l) => (
-          <li key={l.id} className="flex items-start gap-3 px-3 py-2 border border-(--border) bg-(--raised)/30">
-            <Avatar className="size-7 mt-0.5">
-              <AvatarImage src={l.actor.avatarUrl ?? undefined} />
-              <AvatarFallback>{l.actor.displayName.slice(0,2).toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="m-0 text-sm">
-                <span style={{ fontFamily: 'var(--font-display)' }}>{l.actor.displayName}</span>{' '}
-                <span className="text-(--text-2)">{ACTION_LABEL[l.action] ?? l.action.toLowerCase()}</span>
-                {l.targetId && (
-                  <span className="ml-1 text-[11px] text-(--text-3) font-mono">
-                    → {l.targetId.slice(0, 8)}
-                  </span>
-                )}
-              </p>
-              {Object.keys(l.metadata).length > 0 && (
-                <p className="m-0 mt-0.5 text-[11px] text-(--text-3) font-mono truncate">
-                  {JSON.stringify(l.metadata)}
-                </p>
-              )}
-              <p className="m-0 mt-0.5 text-[10px] text-(--text-3)">
-                {new Date(l.createdAt).toLocaleString('pt-BR')}
-              </p>
-            </div>
           </li>
         ))}
       </ul>

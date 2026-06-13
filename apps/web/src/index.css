@@ -832,6 +832,9 @@ body {
    e o teclado — norma WhatsApp/Discord é digitar com composer colado. */
 .astra-kb-open .astra-bottom-nav { display: none; }
 .astra-kb-open .astra-shell { padding-bottom: 0; }
+/* O composer também perde o respiro de safe-area enquanto digita — senão
+   sobra uma faixa morta entre o composer e o topo do teclado. */
+.astra-kb-open .astra-composer { padding-bottom: 0; }
 
 /* Morph mic↔seta do botão de ação do composer (key troca → re-anima).
    Compositor-only: transform + opacity. */

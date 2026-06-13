@@ -248,7 +248,7 @@ export default function DMInput({
 
   return (
     <div
-      className="px-3 sm:px-6 pt-2 pb-safe shrink-0 relative bg-(--void)"
+      className="astra-composer px-3 sm:px-6 pt-2 pb-safe shrink-0 relative bg-(--void)"
       onDragEnter={(e) => { e.preventDefault(); setDragOver(true) }}
       onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
       onDragLeave={(e) => { if (e.currentTarget === e.target) setDragOver(false) }}
