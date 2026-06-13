@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore'
 import { bootstrapAuth } from '@/lib/bootstrap'
 import { useVisibilityRefresh } from '@/hooks/useVisibilityRefresh'
 import { registerNativePush } from '@/lib/pushNative'
-import { isAppLockEnabled, verifyAppLock } from '@/lib/appLock'
+import { isAppLockEnabled, verifyAppLock, isVerifyingAppLock } from '@/lib/appLock'
 import { AppShellSkeleton } from '@/components/skeletons/AppShellSkeleton'
 import { Toaster } from '@/components/ui/sonner'
 import { ConfirmProvider } from '@/hooks/useConfirm'
@@ -61,8 +61,18 @@ export default function App() {
     let remove: (() => void) | undefined
     void import('@capacitor/app').then(async ({ App }) => {
       const handle = await App.addListener('appStateChange', ({ isActive }) => {
-        if (!isActive) { bgAt = Date.now(); return }
-        if (bgAt && Date.now() - bgAt > GRACE_MS) setLocked(true)
+        // O diálogo de biometria pausa/resume o app — ignora pra não
+        // re-trancar logo depois de desbloquear.
+        if (isVerifyingAppLock()) return
+        if (!isActive) {
+          if (!bgAt) bgAt = Date.now() // marca só a 1ª saída (Android dispara várias)
+          return
+        }
+        // Voltou ao foreground: decide UMA vez e consome o bgAt. Sem zerar,
+        // resumes repetidos do Android re-trancavam logo após o desbloqueio.
+        const away = bgAt ? Date.now() - bgAt : 0
+        bgAt = 0
+        if (away > GRACE_MS) setLocked(true)
       })
       remove = () => handle.remove()
     }).catch(() => {})

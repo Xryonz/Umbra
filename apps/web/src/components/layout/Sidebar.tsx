@@ -290,26 +290,33 @@ export default function Sidebar({ activeChannelId, onSelectChannel }: SidebarPro
             <div className="w-7 h-px bg-border my-0.5" />
           </div>
 
-          {/* Descobrir — diretório de constelações públicas. Visível em todos
-              os tamanhos (no mobile, ajuda a preencher o topo do rail). */}
+          {/* ── Ações (topo, estilo Discord) — criar servidor/grupo e
+              descobrir. Ficam ACIMA dos servidores: preenchem o rail e dão
+              alvos fáceis de tocar no mobile. ── */}
+          <StripButton
+            title="Criar constelação"
+            icon={<Plus className="size-5" />}
+            onClick={(origin) => { setCreateMode('server'); setPopOrigin(origin); setShowCreateModal(true) }}
+          />
+          <StripButton
+            title="Criar aglomerado"
+            icon={<Users className="size-4" />}
+            onClick={(origin) => { setCreateMode('group'); setPopOrigin(origin); setShowCreateModal(true) }}
+          />
           <Tooltip>
             <TooltipTrigger asChild>
               <button
                 onClick={() => { navigate('/app/discover'); closeMobile() }}
                 aria-label="Descobrir constelações"
-                className="size-9 shrink-0 grid place-items-center rounded-2xl border border-dashed border-(--border) text-(--text-3) hover:border-(--accent) hover:text-(--accent) transition-colors cursor-pointer"
+                className="size-10 shrink-0 grid place-items-center rounded-2xl border border-dashed border-(--border) text-(--text-3) hover:bg-(--accent-dim) hover:border-(--accent) hover:text-(--accent) transition-colors cursor-pointer"
               >
-                <Compass className="size-4.5" />
+                <Compass className="size-5" />
               </button>
             </TooltipTrigger>
             <TooltipContent side="right">Descobrir constelações</TooltipContent>
           </Tooltip>
 
-          {/* Empurra os ícones de servidor pra baixo no mobile — zona do
-              polegar, mais fácil de tocar. shrink-0 mantém o offset; com
-              muitos servidores a strip rola normalmente. Some no desktop.
-              Ajuste fino: mudar o vh (maior = mais pra baixo). */}
-          <div className="md:hidden shrink-0 h-[14vh]" aria-hidden />
+          <div className="w-7 h-px bg-border my-0.5" />
 
           {regularServers.map((s, i) => (
             <ServerIcon
@@ -338,18 +345,6 @@ export default function Sidebar({ activeChannelId, onSelectChannel }: SidebarPro
               ))}
             </>
           )}
-
-          <div className="w-7 h-px bg-border my-0.5" />
-          <StripButton
-            title="Criar constelação"
-            icon={<Plus className="size-5" />}
-            onClick={(origin) => { setCreateMode('server'); setPopOrigin(origin); setShowCreateModal(true) }}
-          />
-          <StripButton
-            title="Criar aglomerado"
-            icon={<Users className="size-4" />}
-            onClick={(origin) => { setCreateMode('group'); setPopOrigin(origin); setShowCreateModal(true) }}
-          />
 
           {/* spacer empurra toggle pro fundo */}
           <div className="flex-1" />

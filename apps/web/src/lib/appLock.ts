@@ -23,9 +23,20 @@ export async function isBiometricAvailable(): Promise<boolean> {
   } catch { return false }
 }
 
+// Guard contra prompts concorrentes: o auto-prompt (effect) e o botão manual
+// podem disparar juntos, e o plugin rejeita verifyIdentity se já houver um
+// aberto. Também serve pro re-lock ignorar o pause/resume que o próprio
+// diálogo de biometria dispara — senão re-trancava logo após desbloquear.
+let verifying = false
+
+/** true enquanto o diálogo de biometria está aberto. */
+export const isVerifyingAppLock = () => verifying
+
 /** Pede a digital. true = desbloqueado (ou lock desligado/indisponível). */
 export async function verifyAppLock(): Promise<boolean> {
   if (!isAppLockEnabled()) return true
+  if (verifying) return false // já tem um prompt aberto — deixa ele resolver
+  verifying = true
   try {
     const { NativeBiometric } = await import('@capgo/capacitor-native-biometric')
     const { isAvailable } = await NativeBiometric.isAvailable()
@@ -38,5 +49,7 @@ export async function verifyAppLock(): Promise<boolean> {
     return true
   } catch {
     return false // cancelou/falhou — fica na tela de lock
+  } finally {
+    verifying = false
   }
 }
