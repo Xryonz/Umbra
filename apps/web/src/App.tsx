@@ -19,6 +19,7 @@ const RegisterPage      = lazy(() => import('@/pages/RegisterPage'))
 const AppPage           = lazy(() => import('@/pages/AppPage'))
 const OAuthCallbackPage = lazy(() => import('@/pages/OAuthCallbackPage'))
 const InvitePage        = lazy(() => import('@/pages/InvitePage'))
+const OnboardingPage    = lazy(() => import('@/pages/OnboardingPage'))
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -28,6 +29,15 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   return !isAuthenticated ? <>{children}</> : <Navigate to="/app" replace />
+}
+
+// Força o onboarding em contas NOVAS. Redireciona só quando onboardedAt é
+// null EXPLÍCITO (resposta do register). undefined = user em cache de versão
+// antiga (pré-feature) → tratado como já-onboarded, não incomoda quem já usa.
+function RequireOnboarded({ children }: { children: React.ReactNode }) {
+  const user = useAuthStore((s) => s.user)
+  if (user && user.onboardedAt === null) return <Navigate to="/onboarding" replace />
+  return <>{children}</>
 }
 
 export default function App() {
@@ -111,7 +121,8 @@ export default function App() {
             <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
             <Route path="/auth/callback" element={<OAuthCallbackPage />} />
             <Route path="/invite/:code"  element={<InvitePage />} />
-            <Route path="/app/*" element={<PrivateRoute><AppPage /></PrivateRoute>} />
+            <Route path="/onboarding" element={<PrivateRoute><OnboardingPage /></PrivateRoute>} />
+            <Route path="/app/*" element={<PrivateRoute><RequireOnboarded><AppPage /></RequireOnboarded></PrivateRoute>} />
           </Routes>
         </Suspense>
         <Toaster />

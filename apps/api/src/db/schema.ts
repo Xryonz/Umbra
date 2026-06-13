@@ -48,6 +48,9 @@ export const users = pgTable('User', {
   /** JSON: { accent, bg, ...future }. Tema/aparência sincronizado entre devices.
    *  Salvo no PATCH /profile/preferences; lido em /auth/me e aplicado no bootstrap. */
   preferences:  text('preferences'),
+  /** Quando concluiu o onboarding (personalização inicial). null = ainda não
+   *  passou — o app força a tela de boas-vindas antes de entrar. */
+  onboardedAt:  timestamp('onboardedAt', { precision: 3 }),
   createdAt:    timestamp('createdAt', { precision: 3 }).notNull().defaultNow(),
   updatedAt:    timestamp('updatedAt', { precision: 3 }).notNull().defaultNow().$onUpdate(() => new Date()),
 })

@@ -39,6 +39,7 @@ const userSafeColumns = {
   pronouns:        users.pronouns,
   statusEmoji:     users.statusEmoji,
   displayFont:     users.displayFont,
+  onboardedAt:     users.onboardedAt,
 }
 
 // Refresh token: localStorage no front + Authorization: Bearer no /refresh.
@@ -226,6 +227,24 @@ router.post(
     const passwordHash = await bcrypt.hash(newPassword, 12)
     await db.update(users).set({ passwordHash }).where(eq(users.id, req.userId!))
     res.json({ message: 'Senha alterada' })
+  })
+)
+
+// ── POST /api/auth/onboarded ──────────────────────────────────
+// Marca o onboarding (personalização inicial) como concluído. Idempotente:
+// só grava se ainda era null; senão devolve o timestamp existente.
+router.post(
+  '/onboarded',
+  requireAuth,
+  asyncHandler(async (req: Request, res: Response) => {
+    const [row] = await db.update(users)
+      .set({ onboardedAt: new Date() })
+      .where(and(eq(users.id, req.userId!), isNull(users.onboardedAt)))
+      .returning({ onboardedAt: users.onboardedAt })
+    if (row) return res.json({ data: { onboardedAt: row.onboardedAt } })
+    const [u] = await db.select({ onboardedAt: users.onboardedAt })
+      .from(users).where(eq(users.id, req.userId!)).limit(1)
+    res.json({ data: { onboardedAt: u?.onboardedAt ?? new Date() } })
   })
 )
 

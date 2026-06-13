@@ -207,6 +207,8 @@ export interface UserPublic {
   displayFont?:     DisplayFont
   /** true se a conta tem senha (false = só login Google). Só vem em /me. */
   hasPassword?: boolean
+  /** ISO de quando concluiu o onboarding. null/ausente = ainda não passou. */
+  onboardedAt?: string | null
   isBot?:      boolean
 }
 
