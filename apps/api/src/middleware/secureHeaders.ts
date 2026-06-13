@@ -20,6 +20,9 @@ export const secureHeaders = helmet({
       styleSrc:       ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       fontSrc:        ["'self'", 'https://fonts.gstatic.com'],
       imgSrc:         ["'self'", 'data:', 'https:'],
+      // blob: = preview de áudio gravado localmente; https: = anexos servidos
+      // do R2 (cross-origin). Sem isso, áudio/vídeo do bucket é bloqueado.
+      mediaSrc:       ["'self'", 'blob:', 'https:'],
       connectSrc:     ["'self'", env.CLIENT_URL, ...(isProd ? [] : ['ws://localhost:*'])],
       frameSrc:       ["'none'"],
       objectSrc:      ["'none'"],

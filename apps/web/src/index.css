@@ -35,7 +35,9 @@
   /* Text */
   --text-1:   #f0edff;
   --text-2:   #9896bf;
-  --text-3:   #4e4c72;
+  /* --text-3: terciário (timestamps, labels). Era #4e4c72 = 2.5:1 contra o
+     --void (abaixo do WCAG AA). Subido pra ~4:1 mantendo o tom esmaecido. */
+  --text-3:   #6e6b95;
   --text-inv: #09091a;
 
   /* Semantic */

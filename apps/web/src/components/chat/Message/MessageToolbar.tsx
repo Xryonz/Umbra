@@ -66,6 +66,7 @@ function ToolBtn({ title, onClick, danger, children }: {
       <TooltipTrigger asChild>
         <button
           onClick={(e) => { e.stopPropagation(); onClick() }}
+          aria-label={title}
           className={cn(
             'px-2.5 py-2 cursor-pointer transition-colors border-0 bg-transparent flex items-center justify-center border-r border-(--border) last:border-r-0',
             danger

@@ -6,6 +6,7 @@ import { api, resolveApiUrl } from '@/lib/api'
 import { getSocket, fastSendText } from '@/lib/socket'
 import { useTyping } from '@/hooks/useSocket'
 import { applySlashCommand } from '@/lib/slashCommands'
+import { compressImages } from '@/lib/imageCompress'
 import { parseReminderCommand } from '@/lib/reminderCommand'
 import { useAuthStore } from '@/store/authStore'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -127,8 +128,9 @@ export default function MessageInput({
     }
     setUploading(true)
     try {
+      const compressed = await compressImages(arr)
       const fd = new FormData()
-      arr.forEach((f) => fd.append('files', f, f.name))
+      compressed.forEach((f) => fd.append('files', f, f.name))
       const res = await api.post('/api/upload', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })

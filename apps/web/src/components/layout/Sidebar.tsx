@@ -225,7 +225,10 @@ export default function Sidebar({ activeChannelId, onSelectChannel }: SidebarPro
           onClick={closeMobile}
           // Para acima da tab bar (above-mobile-nav) — norma Discord: as tabs
           // continuam visíveis e clicáveis com o drawer aberto.
-          className="md:hidden fixed top-0 left-0 right-0 above-mobile-nav z-40 bg-black/60 backdrop-blur-sm"
+          // Sem backdrop-blur: o WebView Android tem bug de composição com
+          // backdrop-filter em fixed (conteúdo borrado vaza por cima do
+          // drawer opaco). Dim sólido resolve e é a norma Discord.
+          className="md:hidden fixed top-0 left-0 right-0 above-mobile-nav z-40 bg-black/70"
           style={{ animation: 'fadeIn 0.36s ease-out 0.08s both' }}
         />
       )}
@@ -238,7 +241,9 @@ export default function Sidebar({ activeChannelId, onSelectChannel }: SidebarPro
           // Mobile: drawer slide-in da esquerda. 85vw garante que o flex row
           // (strip 64px + canais ~) preenche a largura sem cortar/sobra.
           // above-mobile-nav: termina acima da tab bar (norma Discord).
-          'fixed top-0 left-0 above-mobile-nav w-[85vw] max-w-105 transition-transform border-r border-(--border)',
+          // bg opaco no container: garante que NADA atrás vaza, mesmo se um
+          // filho não pintar a área toda durante a transição.
+          'fixed top-0 left-0 above-mobile-nav w-[85vw] max-w-105 transition-transform border-r border-(--border) bg-(--base)',
           mobileOpen
             ? 'translate-x-0 duration-320 [transition-timing-function:cubic-bezier(0.34,1.32,0.55,1)]'
             : '-translate-x-full md:translate-x-0 duration-260 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]',
@@ -284,11 +289,6 @@ export default function Sidebar({ activeChannelId, onSelectChannel }: SidebarPro
 
             <div className="w-7 h-px bg-border my-0.5" />
           </div>
-
-          {/* Spacer mobile: junto com o flex-1 do fundo, centraliza os
-              ícones na vertical (zona do polegar). Some quando a lista
-              cresce (flex encolhe a 0) — scroll segue normal. */}
-          <div className="flex-1 md:hidden" aria-hidden />
 
           {regularServers.map((s, i) => (
             <ServerIcon
@@ -423,10 +423,9 @@ export default function Sidebar({ activeChannelId, onSelectChannel }: SidebarPro
             onContextMenu={handleChannelAreaContextMenu}
           >
             {channels.length > 0 ? (
-              /* max-md:my-auto: lista curta flutua pro centro vertical do
-                 drawer (alcance do polegar) com folgas equilibradas; lista
-                 longa zera as margens e o scroll é normal. Desktop: topo. */
-              <div className="max-md:my-auto">
+              /* Topo-ancorado (norma Discord): canais colados no banner,
+                 sem vão flutuante — lista curta ou longa, mesmo layout. */
+              <div>
                 <div className="px-3 mb-1.5">
                   <span className="text-[10px] uppercase tracking-wider text-(--text-3) font-medium">
                     {isGroup ? 'Canais do grupo' : 'Canais'}

@@ -8,6 +8,7 @@ import express    from 'express'
 import http       from 'http'
 import { Server as SocketServer } from 'socket.io'
 import cors       from 'cors'
+import compression from 'compression'
 import cookieParser from 'cookie-parser'
 
 import { env }            from './lib/env'
@@ -102,6 +103,10 @@ app.use(cors({
   allowedHeaders:  ['Content-Type','Authorization','X-Request-Id'],
   maxAge:          600,
 }))
+
+// gzip nas respostas (JSON desce 60-80% menor — ícones base64 idem).
+// Threshold default 1kb: payloads minúsculos não pagam o overhead.
+app.use(compression())
 
 app.use(cookieParser())
 // reqContext ANTES dos parsers pra que logs de body-parse já tenham reqId

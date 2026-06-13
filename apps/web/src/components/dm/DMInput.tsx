@@ -12,6 +12,7 @@ import { motion } from 'motion/react'
 import { api, resolveApiUrl } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
+import { compressImages } from '@/lib/imageCompress'
 import type { MessageWithAuthor, Attachment } from '@astra/types'
 import { ComposerActionsMenu } from '@/components/chat/ComposerActionsMenu'
 import { useAudioRecorder } from '@/hooks/useAudioRecorder'
@@ -111,8 +112,9 @@ export default function DMInput({
     }
     setUploading(true)
     try {
+      const compressed = await compressImages(arr)
       const fd = new FormData()
-      arr.forEach((f) => fd.append('files', f, f.name))
+      compressed.forEach((f) => fd.append('files', f, f.name))
       const res = await api.post('/api/upload', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })

@@ -59,6 +59,15 @@ const EnvSchema = z.object({
   LIVEKIT_URL:          z.string().url().optional(),
   LIVEKIT_API_KEY:      z.string().optional(),
   LIVEKIT_API_SECRET:   z.string().optional(),
+
+  // Cloudflare R2 (storage de anexos) — opcional. Sem os 5, anexos vão pro
+  // disco local (somem no redeploy). Com os 5, vão pro bucket persistente.
+  // Cloudflare → R2 → Create bucket → API token (Object Read & Write).
+  R2_ACCOUNT_ID:        z.string().optional(),
+  R2_ACCESS_KEY_ID:     z.string().optional(),
+  R2_SECRET_ACCESS_KEY: z.string().optional(),
+  R2_BUCKET:            z.string().optional(),
+  R2_PUBLIC_URL:        z.string().url().optional(),
 })
 
 const result = EnvSchema.safeParse(process.env)

@@ -106,7 +106,7 @@ export function ProfileHoverCard({ username, userId, children, side = 'top', ali
         side={side}
         align={align}
         sideOffset={8}
-        className="w-96 p-0 overflow-hidden rounded-2xl backdrop-blur-md z-9999 shadow-3 border-(--border-bright)"
+        className="w-105 p-0 overflow-hidden rounded-2xl backdrop-blur-md z-9999 shadow-3 border-(--border-bright)"
         style={{ background: data?.profileTheme || 'var(--overlay)' }}
       >
         <motion.div
@@ -114,9 +114,9 @@ export function ProfileHoverCard({ username, userId, children, side = 'top', ali
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
         >
-          {/* Banner — h-28 (vs h-48 do card cheio). Mais alto que h-16 antigo
-              pra avatar -mt-12 não cortar contra topo do HoverCardContent. */}
-          <div className="relative h-28 overflow-hidden">
+          {/* Banner — h-36 (vs h-48 do card cheio). Alto o bastante pra
+              constelação/imagem não cortar no preview. */}
+          <div className="relative h-36 overflow-hidden">
             <ProfileBanner
               bannerUrl={data?.bannerUrl}
               bannerColor={data?.bannerColor}

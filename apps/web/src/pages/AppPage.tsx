@@ -351,6 +351,21 @@ export default function AppPage() {
     return () => window.removeEventListener('keydown', onKey)
   }, [toggleCommandPalette])
 
+  // Prefetch das telas que o user quase sempre abre depois — só quando a
+  // thread fica ociosa (requestIdleCallback), pra não competir com o load
+  // inicial do chat. Aquecer o chunk = navegação instantânea no 1º clique.
+  useEffect(() => {
+    const ric = (window as any).requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 1200))
+    const id = ric(() => {
+      import('@/pages/DMPage')
+      import('@/pages/FriendsPage')
+      import('@/pages/SettingsPage')
+      import('@/components/CommandPalette')
+    })
+    const cancel = (window as any).cancelIdleCallback
+    return () => { if (cancel) cancel(id); else clearTimeout(id) }
+  }, [])
+
   // Mobile: swipe pra ESQUERDA abre o drawer de constelações.
   // Direita ficou pro swipe-to-reply das mensagens — sem briga de gesto.
   // Listeners passivos + leitura via getState(): zero re-render por toque.

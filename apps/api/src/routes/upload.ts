@@ -6,6 +6,7 @@ import crypto from 'crypto'
 import sharp from 'sharp'
 import { requireAuth } from '../middleware/auth'
 import { asyncHandler } from '../lib/asyncHandler'
+import { putAttachment, storageMode } from '../lib/storage'
 
 const UPLOAD_DIR = path.resolve(process.cwd(), 'uploads')
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true })
@@ -24,11 +25,12 @@ if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true })
  *
  * Aviso emitido uma vez no startup pra ficar grudado nos logs de deploy.
  */
-if (process.env.NODE_ENV === 'production' && !process.env.UPLOAD_PERSISTENT) {
+if (process.env.NODE_ENV === 'production' && storageMode === 'local' && !process.env.UPLOAD_PERSISTENT) {
   // eslint-disable-next-line no-console
   console.warn(
     '[uploads] ⚠ Storage em filesystem local. Arquivos serão perdidos em cada redeploy.\n' +
-    '          Migre pra storage cloud (R2/S3) ou seta UPLOAD_PERSISTENT=1 se tem volume montado.',
+    '          Configure R2 (R2_ACCOUNT_ID/R2_ACCESS_KEY_ID/R2_SECRET_ACCESS_KEY/R2_BUCKET/R2_PUBLIC_URL)\n' +
+    '          ou seta UPLOAD_PERSISTENT=1 se tem volume montado.',
   )
 }
 
@@ -133,10 +135,9 @@ router.post(
       const processed = await maybeTranscode(f)
       const id = crypto.randomBytes(16).toString('hex')
       const filename = `${id}${processed.ext}`
-      const destPath = path.join(UPLOAD_DIR, filename)
-      await fs.promises.writeFile(destPath, processed.buffer)
+      const url = await putAttachment(filename, processed.buffer, processed.mime)
       return {
-        url:    `/uploads/${filename}`,
+        url,
         type:   processed.mime,
         name:   f.originalname,
         size:   processed.buffer.length,
