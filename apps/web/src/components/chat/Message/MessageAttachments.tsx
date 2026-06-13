@@ -7,9 +7,10 @@
  *
  * Extraído de MessageItem (overhaul Fase 4d).
  */
-import { memo, useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 import { File as FileIcon, Download } from 'lucide-react'
 import { resolveApiUrl } from '@/lib/api'
+import { blurhashToDataURL } from '@/lib/blurhash'
 import { VoiceMessage } from '@/components/chat/VoiceRecorder'
 import { cn } from '@/lib/utils'
 
@@ -19,6 +20,9 @@ interface Attachment {
   name:      string
   size:      number
   duration?: number
+  width?:    number
+  height?:   number
+  blurhash?: string
 }
 
 function fmtBytes(b: number) {
@@ -38,7 +42,16 @@ function isImageAttachment(a: { type?: string; name?: string; url?: string }) {
 
 function ImageTile({ att, onOpen, fullWidth }: { att: Attachment; onOpen: () => void; fullWidth: boolean }) {
   const [errored, setErrored] = useState(false)
+  const [loaded, setLoaded]   = useState(false)
   const src = resolveApiUrl(att.url)
+  // Placeholder borrado do blurhash (instantâneo) + aspect-ratio reservando
+  // o espaço certo: a lista não "pula" quando a foto real chega.
+  const blurUrl = useMemo(() => (att.blurhash ? blurhashToDataURL(att.blurhash) : null), [att.blurhash])
+  const aspect  = fullWidth && att.width && att.height ? `${att.width} / ${att.height}` : undefined
+  // "Sized": a caixa tem altura definida antes da imagem carregar (square
+  // sempre; fullWidth só com dimensões). Sem isso (GIF/legado), a imagem
+  // dirige a própria altura como antes.
+  const sized = !fullWidth || (!!att.width && !!att.height)
   if (errored) {
     return (
       <a
@@ -59,24 +72,36 @@ function ImageTile({ att, onOpen, fullWidth }: { att: Attachment; onOpen: () => 
   return (
     <button
       onClick={onOpen}
+      style={aspect ? { aspectRatio: aspect, maxHeight: '30rem' } : undefined}
       className={cn(
         'group relative overflow-hidden bg-(--raised) cursor-zoom-in',
         'rounded-xl border border-(--border)',
-        fullWidth ? 'block' : 'aspect-square',
+        fullWidth ? 'block w-full' : 'aspect-square',
       )}
     >
+      {/* Placeholder borrado: aparece na hora, some quando a real carrega */}
+      {blurUrl && !loaded && (
+        <img
+          src={blurUrl}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 w-full h-full object-cover scale-110"
+        />
+      )}
       <img
         src={src}
         alt={att.name}
         referrerPolicy="no-referrer"
         loading="lazy"
         decoding="async"
+        onLoad={() => setLoaded(true)}
         onError={() => setErrored(true)}
         className={cn(
-          'block transition-transform duration-500 ease-(--ease-spring) group-hover:scale-[1.02]',
-          fullWidth
-            ? 'w-full h-auto max-h-120 object-contain'
-            : 'w-full h-full object-cover',
+          'transition-[transform,opacity] duration-500 ease-(--ease-spring) group-hover:scale-[1.02]',
+          loaded ? 'opacity-100' : 'opacity-0',
+          sized
+            ? cn('absolute inset-0 w-full h-full', fullWidth ? 'object-contain' : 'object-cover')
+            : 'block w-full h-auto max-h-120 object-contain',
         )}
       />
     </button>

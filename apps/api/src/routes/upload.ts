@@ -4,6 +4,7 @@ import path from 'path'
 import fs from 'fs'
 import crypto from 'crypto'
 import sharp from 'sharp'
+import { encode as encodeBlurhash } from 'blurhash'
 import { requireAuth } from '../middleware/auth'
 import { asyncHandler } from '../lib/asyncHandler'
 import { putAttachment, storageMode } from '../lib/storage'
@@ -69,6 +70,26 @@ const upload = multer({
 })
 
 /**
+ * Gera um blurhash — string ~30 chars que codifica uma prévia borrada da
+ * imagem. O cliente decodifica num placeholder instantâneo enquanto a foto
+ * real carrega (fim do retângulo cinza). Falha vira undefined (não quebra
+ * upload). 32px + 4×4 componentes = bom custo/qualidade.
+ */
+async function makeBlurhash(input: Buffer): Promise<string | undefined> {
+  try {
+    const { data, info } = await sharp(input, { failOn: 'none' })
+      .rotate()
+      .resize(32, 32, { fit: 'inside' })
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true })
+    return encodeBlurhash(new Uint8ClampedArray(data), info.width, info.height, 4, 4)
+  } catch {
+    return undefined
+  }
+}
+
+/**
  * Recompressa imagem em WebP. Reduz banda ~70% vs PNG/JPG sem perda visual
  * relevante. Limita altura 2048 (smartphones modernos têm fotos 4032×3024
  * = 12MP que viram 4MB+ JPG — desperdício pra avatar/banner/anexo chat).
@@ -76,11 +97,12 @@ const upload = multer({
  * GIF e SVG: pula (animação/escalável preservadas).
  */
 async function maybeTranscode(file: Express.Multer.File): Promise<{
-  buffer:  Buffer
-  mime:    string
-  ext:     string
-  width?:  number
-  height?: number
+  buffer:   Buffer
+  mime:     string
+  ext:      string
+  width?:   number
+  height?:  number
+  blurhash?: string
 }> {
   const mime = file.mimetype.split(';')[0].toLowerCase()
 
@@ -99,10 +121,11 @@ async function maybeTranscode(file: Express.Multer.File): Promise<{
       .toBuffer()
     return {
       buffer,
-      mime:   'image/webp',
-      ext:    '.webp',
-      width:  meta.width,
-      height: meta.height,
+      mime:     'image/webp',
+      ext:      '.webp',
+      width:    meta.width,
+      height:   meta.height,
+      blurhash: await makeBlurhash(file.buffer),
     }
   } catch (e) {
     console.warn('[upload] sharp falhou, fallback p/ original:', (e as Error).message)
@@ -138,11 +161,12 @@ router.post(
       const url = await putAttachment(filename, processed.buffer, processed.mime)
       return {
         url,
-        type:   processed.mime,
-        name:   f.originalname,
-        size:   processed.buffer.length,
-        width:  processed.width,
-        height: processed.height,
+        type:     processed.mime,
+        name:     f.originalname,
+        size:     processed.buffer.length,
+        width:    processed.width,
+        height:   processed.height,
+        blurhash: processed.blurhash,
       }
     }))
     res.json({ data: { attachments } })

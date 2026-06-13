@@ -218,6 +218,8 @@ export interface Attachment {
   size:   number
   width?: number
   height?: number
+  /** Prévia borrada (~30 chars) decodificada como placeholder instantâneo. */
+  blurhash?: string
 }
 
 export interface MessageWithAuthor {
