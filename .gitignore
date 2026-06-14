@@ -73,6 +73,8 @@ playwright/.cache/
 
 # ── Claude Code local settings + memória pessoal ──────────
 .claude/settings.local.json
+.claude/skills/
+.agents/
 CLAUDE.md
 
 # ── OS ──────────────────────────────────────────────────────
