@@ -71,6 +71,13 @@ export function VoiceCallStage({ onMinimize }: Props) {
       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
       className="fixed inset-0 z-70 flex flex-col bg-(--void) overflow-hidden"
     >
+      {/* Ambiente: aura âmbar suave no topo — profundidade sem custo de animação. */}
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-1/2 pointer-events-none opacity-60"
+        style={{ background: 'radial-gradient(55% 100% at 50% 0%, var(--accent-glow), transparent 72%)' }}
+      />
+
       {/* ─── Header ─── */}
       <motion.header
         initial={{ y: -16, opacity: 0 }}
@@ -121,8 +128,10 @@ export function VoiceCallStage({ onMinimize }: Props) {
           />
         )}
 
-        {/* Participant tiles grid */}
-        <div className={cn('grid gap-3 sm:gap-4 flex-1 min-h-0', gridCols)}>
+        {/* Participant tiles grid — auto-rows-fr faz as linhas dividirem a
+            altura igualmente e os tiles PREENCHEREM (estilo Discord); antes
+            os tiles aspect-video boiavam com vão morto entre eles. */}
+        <div className={cn('grid gap-3 sm:gap-4 flex-1 min-h-0 auto-rows-fr', gridCols)}>
           <AnimatePresence initial={false}>
             {tiles.map((p, i) => (
               <ParticipantTile
@@ -305,7 +314,7 @@ function ParticipantTile({ participant, user, index }: {
       exit={{    opacity: 0, scale: 0.92, y: 12 }}
       transition={{ duration: 0.35, delay: index * 0.04, ease: [0.16, 1, 0.3, 1] }}
       className={cn(
-        'relative aspect-video max-[640px]:landscape:aspect-square rounded-xl overflow-hidden border-2 transition-[border-color,box-shadow] duration-300',
+        'relative h-full w-full min-h-27.5 rounded-2xl overflow-hidden border-2 transition-[border-color,box-shadow] duration-300',
         'bg-linear-to-br from-(--raised) to-(--base)',
         speaking
           ? 'border-(--accent) shadow-[0_0_0_2px_var(--accent-glow),0_6px_24px_-6px_var(--accent-glow)]'
@@ -326,7 +335,7 @@ function ParticipantTile({ participant, user, index }: {
           initial={{ opacity: 0.0 }}
           animate={{ opacity: [0.2, 0.5, 0.2] }}
           transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute inset-0 ring-2 ring-(--accent) ring-inset rounded-xl pointer-events-none"
+          className="absolute inset-0 ring-2 ring-(--accent) ring-inset rounded-2xl pointer-events-none"
         />
       )}
 
