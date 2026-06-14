@@ -1,0 +1,28 @@
+{
+  "settings": {
+    "title": "Configurações",
+    "groups": {
+      "pessoal": "Pessoal",
+      "app": "Aplicativo",
+      "comunidade": "Comunidade",
+      "privacidade": "Privacidade"
+    },
+    "nav": {
+      "account": "Conta",
+      "profile": "Perfil",
+      "customization": "Personalização",
+      "appearance": "Aparência",
+      "name-colors": "Cores nos servidores",
+      "notifications": "Notificações",
+      "wishing": "Wishing Star",
+      "sessions": "Sessões",
+      "data": "Dados",
+      "language": "Idioma"
+    }
+  },
+  "language": {
+    "title": "Idioma",
+    "description": "Escolha como o app fala com você. Estamos traduzindo a Astra tela por tela — mais idiomas vêm por aí.",
+    "comingSoon": "em breve"
+  }
+}

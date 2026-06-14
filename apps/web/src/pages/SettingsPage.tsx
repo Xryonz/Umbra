@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
-  ArrowLeft, User, Image as ImageIcon, Palette, Bell, Shield, Users as UsersIcon, Database, Brush, Sparkles,
+  ArrowLeft, User, Image as ImageIcon, Palette, Bell, Shield, Users as UsersIcon, Database, Brush, Sparkles, Languages,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import AccountSection      from '@/components/settings/sections/AccountSection'
@@ -13,6 +14,7 @@ import NotificationsSection from '@/components/settings/sections/NotificationsSe
 import SessionsSection     from '@/components/settings/sections/SessionsSection'
 import DataSection         from '@/components/settings/sections/DataSection'
 import WishingStarSection  from '@/components/settings/sections/WishingStarSection'
+import LanguageSection      from '@/components/settings/sections/LanguageSection'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Reveal } from '@/components/anim/Reveal'
 import {
@@ -30,30 +32,26 @@ type SectionId =
   | 'appearance'
   | 'name-colors'
   | 'notifications'
+  | 'language'
   | 'sessions'
   | 'data'
   | 'wishing'
 
+// label = chave i18n (settings.nav.*); resolvida com t() no render.
 interface NavItem { id: SectionId; label: string; icon: React.ReactNode; group: 'pessoal' | 'app' | 'privacidade' | 'comunidade' }
 
 const NAV: NavItem[] = [
-  { id: 'account',       label: 'Conta',                icon: <User className="size-3.5" />,      group: 'pessoal' },
-  { id: 'profile',       label: 'Perfil',               icon: <ImageIcon className="size-3.5" />, group: 'pessoal' },
-  { id: 'customization', label: 'Personalização',       icon: <Brush className="size-3.5" />,     group: 'pessoal' },
-  { id: 'appearance',    label: 'Aparência',            icon: <Palette className="size-3.5" />,   group: 'app' },
-  { id: 'name-colors',   label: 'Cores nos servidores', icon: <UsersIcon className="size-3.5" />, group: 'app' },
-  { id: 'notifications', label: 'Notificações',         icon: <Bell className="size-3.5" />,      group: 'app' },
-  { id: 'wishing',       label: 'Wishing Star',         icon: <Sparkles className="size-3.5" />,  group: 'comunidade' },
-  { id: 'sessions',      label: 'Sessões',              icon: <Shield className="size-3.5" />,    group: 'privacidade' },
-  { id: 'data',          label: 'Dados',                icon: <Database className="size-3.5" />,  group: 'privacidade' },
+  { id: 'account',       label: 'settings.nav.account',       icon: <User className="size-3.5" />,      group: 'pessoal' },
+  { id: 'profile',       label: 'settings.nav.profile',       icon: <ImageIcon className="size-3.5" />, group: 'pessoal' },
+  { id: 'customization', label: 'settings.nav.customization', icon: <Brush className="size-3.5" />,     group: 'pessoal' },
+  { id: 'appearance',    label: 'settings.nav.appearance',    icon: <Palette className="size-3.5" />,   group: 'app' },
+  { id: 'name-colors',   label: 'settings.nav.name-colors',   icon: <UsersIcon className="size-3.5" />, group: 'app' },
+  { id: 'notifications', label: 'settings.nav.notifications', icon: <Bell className="size-3.5" />,      group: 'app' },
+  { id: 'language',      label: 'settings.nav.language',      icon: <Languages className="size-3.5" />, group: 'app' },
+  { id: 'wishing',       label: 'settings.nav.wishing',       icon: <Sparkles className="size-3.5" />,  group: 'comunidade' },
+  { id: 'sessions',      label: 'settings.nav.sessions',      icon: <Shield className="size-3.5" />,    group: 'privacidade' },
+  { id: 'data',          label: 'settings.nav.data',          icon: <Database className="size-3.5" />,  group: 'privacidade' },
 ]
-
-const GROUP_LABEL: Record<NavItem['group'], string> = {
-  pessoal:      'Pessoal',
-  app:          'Aplicativo',
-  comunidade:   'Comunidade',
-  privacidade:  'Privacidade',
-}
 
 /**
  * SettingsPage com sidebar editorial.
@@ -67,6 +65,7 @@ const GROUP_LABEL: Record<NavItem['group'], string> = {
 export default function SettingsPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { t } = useTranslation()
 
   const initialSection = (location.hash.slice(1) as SectionId) || 'account'
   const [section, setSection] = useState<SectionId>(
@@ -79,7 +78,8 @@ export default function SettingsPage() {
     }
   }, [section, location.pathname])
 
-  const currentLabel = NAV.find((n) => n.id === section)?.label ?? 'Configurações'
+  const currentLabelKey = NAV.find((n) => n.id === section)?.label
+  const currentLabel = currentLabelKey ? t(currentLabelKey) : t('settings.title')
 
   return (
     <main className="flex-1 flex h-full font-(family-name:--font-body) overflow-hidden">
@@ -98,7 +98,7 @@ export default function SettingsPage() {
             className="text-base m-0 font-normal tracking-tight text-foreground"
             style={{ fontFamily: 'var(--font-display)' }}
           >
-            Configurações
+            {t('settings.title')}
           </h1>
         </header>
 
@@ -108,7 +108,7 @@ export default function SettingsPage() {
               <div key={grp} className="mb-5">
                 <Reveal delay={gi * 0.06}>
                   <p className="px-5 mb-2 text-[10px] uppercase tracking-wider text-(--text-3) font-mono m-0">
-                    — {GROUP_LABEL[grp]}
+                    — {t(`settings.groups.${grp}`)}
                   </p>
                 </Reveal>
                 <ul className="flex flex-col gap-0.5">
@@ -131,7 +131,7 @@ export default function SettingsPage() {
                           <span className={active ? 'text-(--accent)' : 'text-(--text-3) group-hover:text-(--text-2)'}>
                             {n.icon}
                           </span>
-                          <span>{n.label}</span>
+                          <span>{t(n.label)}</span>
                         </button>
                       </li>
                     )
@@ -165,11 +165,11 @@ export default function SettingsPage() {
               <SelectContent>
                 {(['pessoal', 'app', 'comunidade', 'privacidade'] as const).map((grp) => (
                   <SelectGroup key={grp}>
-                    <SelectLabel>{GROUP_LABEL[grp]}</SelectLabel>
+                    <SelectLabel>{t(`settings.groups.${grp}`)}</SelectLabel>
                     {NAV.filter((n) => n.group === grp).map((n) => (
                       <SelectItem key={n.id} value={n.id}>
                         <span className="flex items-center gap-2">
-                          {n.icon} {n.label}
+                          {n.icon} {t(n.label)}
                         </span>
                       </SelectItem>
                     ))}
@@ -189,7 +189,7 @@ export default function SettingsPage() {
                   </BreadcrumbItem>
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
-                    <BreadcrumbLink>Configurações</BreadcrumbLink>
+                    <BreadcrumbLink>{t('settings.title')}</BreadcrumbLink>
                   </BreadcrumbItem>
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
@@ -217,6 +217,7 @@ export default function SettingsPage() {
               {section === 'appearance'    && <AppearanceSection />}
               {section === 'name-colors'   && <NameColorsSection />}
               {section === 'notifications' && <NotificationsSection />}
+              {section === 'language'      && <LanguageSection />}
               {section === 'wishing'       && <WishingStarSection />}
               {section === 'sessions'      && <SessionsSection />}
               {section === 'data'          && <DataSection />}
